@@ -5,10 +5,12 @@ var auth = {
  
   login: function(req, res) {
 
-    var username = req.body.username || '';
+    var email = req.body.email || '';
     var password = req.body.password || '';
+    var signUp = req.body.signUp;
+    var dbUserObj;
  
-    if (username == '' || password == '') {
+    if (email == '' || password == '') {
       res.status(401);
       res.json({
         "status": 401,
@@ -18,10 +20,21 @@ var auth = {
     }
  
     // Fire a query to your DB and check if the credentials are valid
-    var dbUserObj = auth.validate(username, password);
-   
-    if (!dbUserObj) { // If authentication fails, we send a 401 back
+    if (signUp) {
+      console.log("auth signUp User");
+      dbUserObj = users.create(req, res, wasUserAuthed);
+    } else {
+      dbUserObj = users.getOne(req, res, wasUserAuthed);
+    }   
+  }
+
+}
+ 
+// private method
+function wasUserAuthed(req, res, dbUserObj) {
+      if (!dbUserObj) { // If authentication fails, we send a 401 back
       res.status(401);
+      console.log("USER NOT DEFINED... Issue");
       res.json({
         "status": 401,
         "message": "Invalid credentials"
@@ -37,34 +50,9 @@ var auth = {
       res.json(genToken(dbUserObj));
     }
  
-  },
- 
-  validate: function(username, password) {
-    // spoofing the DB response for simplicity
-    var dbUserObj = { // spoofing a userobject from the DB. 
-      name: 'arvind',
-      role: 'admin',
-      username: 'arvind@myapp.com'
-    };
- 
-    return dbUserObj;
-  },
- 
-  validateUser: function(username) {
-    // spoofing the DB response for simplicity
-    var dbUserObj = { // spoofing a userobject from the DB. 
-      name: 'arvind',
-      role: 'admin',
-      username: 'arvind@myapp.com'
-    };
- 
-    return dbUserObj;
-  },
 }
- 
-// private method
+
 function genToken(user) {
-  console.log("gen token!");
   var expires = expiresIn(7); // 7 days
   var token = jwt.encode({
     exp: expires

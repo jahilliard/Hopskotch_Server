@@ -1,7 +1,5 @@
 var user = require("../models/user.js");
 
-console.log(user.signUpUser);
-
 var users = {
 
   getAll: function(req, res) {
@@ -9,15 +7,28 @@ var users = {
   },
  
   getOne: function(req, res, callback) {
-    callback(req, res, user.validateUser(req.body.email, req.body.password));
+      user.loginUser(req.body.email, req.body.password, 
+        function(user){
+          callback(req, res, user);
+      });
+  },
+
+  validateOne: function(req, res, next, callback) {
+    user.validateUser(req.body.key, 
+        function(user){
+          if (user) {
+            callback(req, res, next, user);
+          } else {
+            callback(req, res, next, false);
+          }
+      });
   },
  
   create: function(req, res, callback) {
-    console.log("users controller Create");
     user.signUpUser(req.body.email, req.body.password,
       function(newUser){
         callback(req, res, newUser);
-      });
+    });
   },
  
   update: function(req, res) {

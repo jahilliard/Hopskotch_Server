@@ -28,20 +28,35 @@ var User = {
 	});
 },
 
-validateUser: function(email, password, callback){
+loginUser: function(email, password, callback){
 	mongoDB.findOne("user", {
 		"email" : email
 	}, function(user){
-		bcrypt.compare(password, user.hash, function(err, res) {
-			if (res) {
-        callback(user);
-      } else {
-        callback(false);
-      }
-		});
+    if (user) {
+		  bcrypt.compare(password, user.passwordHash, function(err, res) {
+		  	if (res) {
+          callback(user);
+        } else {
+          callback(false);
+        }
+		  });
+    } else {
+      callback(false);
+    }
 	});
+},
+
+validateUser: function(email, callback){
+  mongoDB.findOne("user", {
+    "email" : email
+  }, function(user){
+    if (user) {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
 }
- 
 
 }
 

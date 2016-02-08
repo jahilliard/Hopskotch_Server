@@ -21,7 +21,6 @@ var auth = {
  
     // Fire a query to your DB and check if the credentials are valid
     if (signUp) {
-      console.log("auth signUp User");
       dbUserObj = users.create(req, res, wasUserAuthed);
     } else {
       dbUserObj = users.getOne(req, res, wasUserAuthed);
@@ -34,7 +33,6 @@ var auth = {
 function wasUserAuthed(req, res, dbUserObj) {
       if (!dbUserObj) { // If authentication fails, we send a 401 back
       res.status(401);
-      console.log("USER NOT DEFINED... Issue");
       res.json({
         "status": 401,
         "message": "Invalid credentials"

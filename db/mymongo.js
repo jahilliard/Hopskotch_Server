@@ -1,3 +1,4 @@
+  // TODO: safe option is deprecated, use mongo write concerns instead
 var util = require("util");
 var mongoClient = require('mongodb').MongoClient;
 

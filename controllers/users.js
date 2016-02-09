@@ -6,28 +6,28 @@ var users = {
     
   },
  
-  getOne: function(req, res, callback) {
+  getOne: function(req, res, next) {
       user.loginUser(req.body.email, req.body.password, 
         function(user){
-          callback(req, res, user);
+          next(req, res, user);
       });
   },
 
-  validateOne: function(req, res, next, callback) {
-    user.validateUser(req.body.key, 
+  validateOne: function(key, callback) {
+    user.validateUser(key, 
         function(user){
           if (user) {
-            callback(req, res, next, user);
+            callback(user);
           } else {
-            callback(req, res, next, false);
+            callback(false);
           }
       });
   },
  
-  create: function(req, res, callback) {
+  create: function(req, res, next) {
     user.signUpUser(req.body.email, req.body.password,
       function(newUser){
-        callback(req, res, newUser);
+        next(req, res, newUser);
     });
   },
  

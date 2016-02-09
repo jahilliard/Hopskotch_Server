@@ -12,24 +12,28 @@ var users = require("../controllers/users.js");
  * Routes that can be accessed by any one
  */
 router.post('/login', auth.login);
- 
+router.post('/users', users.create);
 /*
  * Routes that can be accessed only by autheticated users
  */
-router.get('/api/v1/menus', menus.getAll);
-router.get('/api/v1/menu/:id', menus.getOne);
-router.post('/api/v1/menu/', menus.create);
-router.put('/api/v1/menu/:id', menus.update);
-router.delete('/api/v1/menu/:id', menus.delete);
 
  
 /*
  * Routes that can be accessed only by authenticated & authorized users
  */
-router.get('/api/v1/admin/users', users.getAll);
+router.get('/api/v1/admin/users/', users.getAll);
 router.get('/api/v1/admin/user/:id', users.getOne);
-router.post('/api/v1/admin/user/', users.create);
 router.put('/api/v1/admin/user/:id', users.update);
 router.delete('/api/v1/admin/user/:id', users.delete);
+
+router.get('/api/v1/admin/restaurants/', restaurants.getAll);
+router.get('/api/v1/admin/restaurants/:id', restaurants.getOne);
+router.post('/api/v1/admin/restaurants/', restaurants.create);
+router.put('/api/v1/admin/restaurants/:id', restaurants.update);
+router.delete('/api/v1/admin/restaurants/:id', restaurants.delete);
+
+//router.put('/api/v1/admin/restaurants/:id/menu/:menuid', restaurants.updateMenuItem);
+//router.get('/api/v1/admin/restaurants/:id/menu/:menuid', restaurants.updateMenuItem);
+
  
 module.exports = router;

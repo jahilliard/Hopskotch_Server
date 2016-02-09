@@ -30,7 +30,7 @@ var validateRequest = function(req, res, next) {
       }
  
       // Authorize the user to see if s/he can access our resources
-      users.validateOne(req, res, next, function(req, res, dbUser){
+      users.validateOne(key, function(dbUser){
         console.log(dbUser);
         if (dbUser) {
             if ((req.url.indexOf('admin') >= 0 && dbUser.role == 'admin') || (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/v1/') >= 0)) {

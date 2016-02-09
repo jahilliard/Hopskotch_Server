@@ -15,16 +15,16 @@ var User = {
 
  signUpUser: function(email, password, callback){
   	bcrypt.hash(password, null, null, function(err, hash) {
-		mongoDB.insert("user", {
-  			"email" : email,
-  			"passwordHash" : hash
-  		}, function(newUser){
-  			if (newUser) {
-  				callback(newUser);
-  			} else {
-  				callback(false);
-			};
-		});
+  		mongoDB.insert("user", {
+    			"email" : email,
+    			"passwordHash" : hash
+    		}, function(newUser){
+    			if (newUser) {
+    				callback(newUser);
+    			} else {
+    				callback(false);
+  			};
+  		});
 	});
 },
 
@@ -51,7 +51,7 @@ validateUser: function(email, callback){
     "email" : email
   }, function(user){
     if (user) {
-      callback(true);
+      callback(user);
     } else {
       callback(false);
     }

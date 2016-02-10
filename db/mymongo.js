@@ -78,14 +78,33 @@ var MongoDB = {
               callback(null, docs);
             }
       });
-  }
+  },
 
+  createIndex: function(collection, query, options, callback) {
+    var requestCollection = this.myMongo.collection("request");
+    requestCollection.ensureIndex(query, options, function(err, indexName){
+      if (err) {
+        callback(err);
+      } else {
+        callback(null)
+      }
+    });
+  }
 };
 
 mongoClient.connect('mongodb://'+MongoDB.connection_string, function(err, db) {
   if (err) doError(err);
   console.log("Connected correctly to server");
   MongoDB.myMongo = db;
+
+  //initiailize indexes for those collections that need it
+  /*MongoDB.createIndex("request", "matchList.requesterId", {unique: true}, 
+    function(err){
+      if (err){
+        console.log("COULD NOT CREATE INDEX");
+        throw(err);
+      }
+    })*/
 })
 
 module.exports = MongoDB;

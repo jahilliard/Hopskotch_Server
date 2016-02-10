@@ -105,11 +105,10 @@ var restaurants = {
     restaurant.deleteMenuItems(req.params.id, req.body.oldMenuItems, 
       function(err, deletedObjs){
         if (err){
-          console.log(err);
           res.status(404);
           res.json({
-              "errcode": err.code,
-              "message": err.errmsg
+            "errcode": err.code,
+            "message": err.errmsg
           });
         } else {
           res.status(200);

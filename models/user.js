@@ -14,6 +14,10 @@ var User = {
   	accessToken: ""
   },
 
+  allUsers: function(callback){
+    mongoDB.find("user", {}, callback);
+  },
+
   signUpUser: function(email, password, callback){
   	bcrypt.hash(password, null, null, function(err, hash) {
   		mongoDB.insert("user", {

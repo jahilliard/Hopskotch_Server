@@ -1,9 +1,18 @@
 var user = require("../models/user.js");
+var helper = require("../helpers/helper.js");
 
 var users = {
 
   getAll: function(req, res) {
-    
+    user.allUsers(function(err, users){
+      if(err){
+        res.status(404);
+        res.json({"errcode": err.code, "message": err.errmsg});
+      } else {
+        res.status(200);
+        res.json({"message": "success", "users": users});
+      }
+    });
   },
  
   getOne: function(req, res, callback) {

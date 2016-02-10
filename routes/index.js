@@ -35,5 +35,22 @@ router.delete('/api/v1/admin/restaurants/:id', restaurants.delete);
 router.post('/api/v1/admin/restaurants/:id/menu/', restaurants.addMenuItems);
 router.delete('/api/v1/admin/restaurants/:id/menu/', restaurants.deleteMenuItems);
 
- 
+router.get('/api/v1/admin/requests/', requests.getAll);
+router.get('/api/v1/admin/requests/:id', requests.getOne);
+router.post('/api/v1/admin/requests/', requests.create);
+router.put('/api/v1/admin/requests/:id', requests.update);
+router.delete('/api/v1/admin/requests/:id', requests.delete);
+
+router.post('/api/v1/admin/requests/:id/matches/', requests.addMatch);
+router.delete('/api/v1/admin/requests/:id/matches/', requests.removeMatch);
+
+router.get('/api/v1/admin/queues/', queues.getAll);
+router.get('/api/v1/admin/queues/:id', queues.getOne);
+router.post('/api/v1/admin/queues/', queues.create);
+router.put('/api/v1/admin/queues/:id', queues.update);
+router.delete('/api/v1/admin/queues/:id', queues.delete);
+
+router.post('/api/v1/admin/queues/:id/queue/', queues.addUserToQueue);
+router.delete('/api/v1/admin/queues/:id/queue/', queues.removeUserFromQueue);
+
 module.exports = router;

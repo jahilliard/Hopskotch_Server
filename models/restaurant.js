@@ -2,6 +2,7 @@ var mongoDB = require('../db/mymongo.js');
 		ObjectID = require('mongodb').ObjectID;
 
 var restaurant = {
+	
 	createRestaurant: function(name, mainImg, lat, lng, menu, callback) {
 		docObj = 
 			{
@@ -39,15 +40,15 @@ var restaurant = {
 
 	update: function(id, newFields, callback){
 		query = 
-		{
-			find: {
-				"_id": new ObjectID(id)
-			},
+			{
+				find: {
+					"_id": new ObjectID(id)
+				},
 
-			update: {
-				$set: newFields
-			}
-		}
+				update: {
+					$set: newFields
+				}
+			};
 
 		mongoDB.update("restaurant", query, callback);
 	},
@@ -63,15 +64,15 @@ var restaurant = {
 
 	addMenuItems: function(rid, newMenuItems, callback){
 		updateObj =
-		{
-			find: {
-				"_id": new ObjectID(rid)
-			},
+			{
+				find: {
+					"_id": new ObjectID(rid)
+				},
 
-			update: {
-    		$push: { menu: { $each: newMenuItems } } 
-    	}
-		}
+				update: {
+	    		$push: { menu: { $each: newMenuItems } } 
+	    	}
+			};
 
 		mongoDB.update("restaurant", updateObj, callback);
 	},
@@ -86,7 +87,7 @@ var restaurant = {
 			update: {
     		$pull: { menu: { food : { $in: oldMenuItems } } }
     	}
-		}
+		};
 
 		mongoDB.update("restaurant", updateObj, callback)
 	}

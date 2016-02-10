@@ -20,8 +20,11 @@ var MongoDB = {
           {safe: true},
           function(err, crsr) {
             console.log("myMongo insert")
-            if (err) doError(err);
-            callback(crsr);
+            if (err) {
+              callback(err, null);
+            } else {
+              callback(null, crsr);
+            }
           });
   },
 
@@ -29,8 +32,11 @@ var MongoDB = {
   find: function(collection, query, callback) {
         var crsr = this.myMongo.collection(collection).find(query);
         crsr.toArray(function(err, docs) {
-          if (err) doError(err);
-          callback(docs);
+          if (err) {
+            callback(err, null);
+          } else {
+            callback(null, docs);
+          }
         });
   },
 
@@ -38,8 +44,11 @@ var MongoDB = {
   findOne: function(collection, query, callback) {
         this.myMongo.collection(collection).findOne(query,
           function(err, docs) {
-          if (err) doError(err); 
-          callback(docs);
+            if (err) {
+              callback(err, null);
+            } else {
+              callback(null, docs);
+            }
         });
   },
 
@@ -49,8 +58,11 @@ var MongoDB = {
             query.find,
             query.update,
             function(err, crsr) {
-              if (err) doError(err);
-              callback(crsr);
+              if (err) {
+                callback(err, null);
+              } else {
+                callback(null, crsr);
+              }
         });
   },
 
@@ -60,8 +72,11 @@ var MongoDB = {
           query,
           {safe: true},
           function(err, docs) {
-            if (err) doError(err);
-            callback(docs);
+            if (err) {
+              callback(err, null);
+            } else {
+              callback(null, docs);
+            }
       });
   }
 

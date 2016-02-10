@@ -32,8 +32,8 @@ router.post('/api/v1/admin/restaurants/', restaurants.create);
 router.put('/api/v1/admin/restaurants/:id', restaurants.update);
 router.delete('/api/v1/admin/restaurants/:id', restaurants.delete);
 
-//router.put('/api/v1/admin/restaurants/:id/menu/:menuid', restaurants.updateMenuItem);
-//router.get('/api/v1/admin/restaurants/:id/menu/:menuid', restaurants.updateMenuItem);
+router.post('/api/v1/admin/restaurants/:id/menu/', restaurants.addMenuItems);
+router.delete('/api/v1/admin/restaurants/:id/menu/', restaurants.deleteMenuItems);
 
  
 module.exports = router;

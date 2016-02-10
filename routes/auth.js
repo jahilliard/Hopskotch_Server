@@ -20,11 +20,7 @@ var auth = {
     }
  
     // Fire a query to your DB and check if the credentials are valid
-    if (signUp) {
-      dbUserObj = users.create(req, res, wasUserAuthed);
-    } else {
-      dbUserObj = users.getOne(req, res, wasUserAuthed);
-    }   
+    users.getOne(req, res, wasUserAuthed);
   }
 
 }
@@ -32,10 +28,10 @@ var auth = {
 // private method
 function wasUserAuthed(req, res, dbUserObj) {
       if (!dbUserObj) { // If authentication fails, we send a 401 back
-      res.status(401);
-      res.json({
-        "status": 401,
-        "message": "Invalid credentials"
+        res.status(401);
+        res.json({
+          "status": 401,
+          "message": "Invalid credentials"
       });
       return;
     }

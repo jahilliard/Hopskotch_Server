@@ -45,7 +45,6 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-
 app.listen(port, ipaddress, function() {
         console.log('%s: Node server started on %s:%d ...',
                         Date(Date.now() ), ipaddress, port);

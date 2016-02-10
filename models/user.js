@@ -6,6 +6,7 @@ var User = {
   attributes: {
   	firstName: "",
   	lastName : "",
+    nickname: "",
   	email: "",
   	password: "",
   	fbId: "",
@@ -13,7 +14,7 @@ var User = {
   	accessToken: ""
   },
 
- signUpUser: function(email, password, callback){
+  signUpUser: function(email, password, callback){
   	bcrypt.hash(password, null, null, function(err, hash) {
   		mongoDB.insert("user", {
     			"email" : email,
@@ -25,39 +26,51 @@ var User = {
     				callback(false);
   			};
   		});
-	});
-},
+    });
+  },
 
-loginUser: function(email, password, callback){
-	mongoDB.findOne("user", {
-		"email" : email
-	}, function(user){
-    if (user) {
-		  bcrypt.compare(password, user.passwordHash, function(err, res) {
-		  	if (res) {
-          callback(user);
-        } else {
-          callback(false);
-        }
-		  });
-    } else {
-      callback(false);
+  loginUser: function(email, password, callback){
+  	mongoDB.findOne("user", {
+  		"email" : email
+  	}, function(user){
+      if (user) {
+  		  bcrypt.compare(password, user.passwordHash, function(err, res) {
+  		  	if (err) {
+            callback(true, null);
+          } else {
+            callback(null, user);
+          }
+  		  });
+      } else {
+        callback(true, null);
+      }
+  	});
+  },
+
+  update: function(id, newFields, callback){
+    query = 
+    {
+      find: {
+        "_id": new ObjectID(id)
+      },
+
+      update: {
+        $set: newFields
+      }
     }
-	});
-},
 
-validateUser: function(email, callback){
-  mongoDB.findOne("user", {
-    "email" : email
-  }, function(user){
-    if (user) {
-      callback(user);
-    } else {
-      callback(false);
-    }
-  });
-}
+    mongoDB.update("user", query, function(err, user){
+      callback(err, user);
+    });
+  },
 
+  validateUser: function(email, callback){
+    mongoDB.findOne("user", {
+      "email" : email
+    }, function(err, user){
+      callback(err, user);
+    });
+  }
 }
 
 

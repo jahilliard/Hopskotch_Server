@@ -12,23 +12,11 @@ var restaurant = {
 				"menu" : menu
     	};
 
-		mongoDB.insert("restaurant", docObj, function(newRestaurant){
-			if (newRestaurant){
-				callback(newRestaurant);
-			} else {
-				callback(false);
-			}
-		});
+		mongoDB.insert("restaurant", docObj, callback);
 	},
 
 	allRestaurants: function(callback){
-		mongoDB.find("restaurant", {}, function(restaurants){
-			if (restaurants){
-				callback(restaurants);
-			} else {
-				callback(false);
-			}
-	  });
+		mongoDB.find("restaurant", {}, callback);
 	},
 
 	findRestaurant: function(id, callback){
@@ -37,13 +25,7 @@ var restaurant = {
 				"_id" : new ObjectID(id)
 			};
 
-		mongoDB.find("restaurant", findObj, function(restaurant){
-			if (restaurant){
-				callback(restaurant);
-			} else {
-				callback(false);
-			}
-	  });
+		mongoDB.find("restaurant", findObj, callback);
 	},
 
 	restaurantsWithName: function(name, callback){
@@ -52,13 +34,7 @@ var restaurant = {
 				"name" : name
 			};	
 		
-		mongoDB.find("restaurant", findObj, function(restaurants){
-			if (restaurants){
-				callback(restaurants);
-			} else {
-				callback(false);
-			}
-  	});
+		mongoDB.find("restaurant", findObj, callback);
 	},
 
 	update: function(id, newFields, callback){
@@ -73,13 +49,7 @@ var restaurant = {
 			}
 		}
 
-		mongoDB.update("restaurant", query, function(deletedObjs){
-			if(deletedObjs){
-				callback(deletedObjs);
-			} else {
-				callback(false);
-			}
-		})
+		mongoDB.update("restaurant", query, callback);
 	},
 
 	delete: function(id, callback){
@@ -88,13 +58,37 @@ var restaurant = {
 				"_id" : new ObjectID(id)
 			};
 
-		mongoDB.remove("restaurant", deleteObj, function(deletedDoc){
-			if (deletedDoc){
-				callback(deletedDoc);
-			} else {
-				callback(false);
-			}
-  	});
+		mongoDB.remove("restaurant", deleteObj, callback);
+	},
+
+	addMenuItems: function(rid, newMenuItems, callback){
+		updateObj =
+		{
+			find: {
+				"_id": new ObjectID(rid)
+			},
+
+			update: {
+    		$push: { menu: { $each: newMenuItems } } 
+    	}
+		}
+
+		mongoDB.update("restaurant", updateObj, callback);
+	},
+
+	deleteMenuItems: function(rid, oldMenuItems, callback){
+		updateObj =
+		{
+			find: {
+				"_id": new ObjectID(rid)
+			},
+
+			update: {
+    		$pull: { menu: { food : { $in: oldMenuItems } } }
+    	}
+		}
+
+		mongoDB.update("restaurant", updateObj, callback)
 	}
 };
  

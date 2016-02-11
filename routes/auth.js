@@ -47,7 +47,7 @@ function wasUserAuthed(req, res, dbUserObj) {
 }
 
 function genToken(user) {
-  var expires = expiresIn(7); // 7 days
+  var expires = expiresIn(365); // 1 year
   var token = jwt.encode({
     exp: expires
   }, require('../config/secret')());

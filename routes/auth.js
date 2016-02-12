@@ -52,11 +52,7 @@ function genToken(user) {
     exp: expires
   }, require('../config/secret')());
  
-  return {
-    token: token,
-    expires: expires,
-    user: user
-  };
+  return token;
 }
  
 function expiresIn(numDays) {

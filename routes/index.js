@@ -1,17 +1,21 @@
 var express = require('express');
 var router = express.Router();
  
-var auth = require('./auth.js');
+var auth = require('../controllers/auth.js');
 var menus = require("../controllers/menus.js");
 var queues = require("../controllers/queues.js");
 var requests = require("../controllers/requests.js");
 var restaurants = require("../controllers/restaurants.js");
 var users = require("../controllers/users.js");
- 
+
 /*
  * Routes that can be accessed by any one
  */
-router.post('/login', auth.login);
+
+
+router.post('/login', auth.authenticate);
+
+ 
 router.post('/users', users.create);
 /*
  * Routes that can be accessed only by autheticated users

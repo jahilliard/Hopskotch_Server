@@ -15,6 +15,17 @@ var users = {
     });
   },
  
+  login: function(username, password, callback) {
+    user.loginUser(username, password, 
+      function(err, user){
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, user);
+        }
+    });
+  },
+
   getOne: function(req, res, callback) {
     user.loginUser(req.body.email, req.body.password, 
       function(err, user){

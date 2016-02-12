@@ -36,17 +36,20 @@ var User = {
   loginUser: function(email, password, callback){
   	mongoDB.findOne("user", {
   		"email" : email
-  	}, function(user){
+  	}, function(err, user){
+      if (err){
+        return callback(err, null);
+      }
       if (user) {
   		  bcrypt.compare(password, user.passwordHash, function(err, res) {
   		  	if (err) {
-            callback(true, null);
+            return callback(err, null);
           } else {
-            callback(null, user);
+            return callback(null, user);
           }
   		  });
       } else {
-        callback(true, null);
+        return callback(null, null);
       }
   	});
   },

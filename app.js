@@ -16,11 +16,13 @@ var options = {
     cert: hscert
 };
 
+var passport = require("./middleware/passport.js")
 var app = express(options);
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(passport.initialize());
  
 app.all('/*', function(req, res, next) {
   // CORS headers

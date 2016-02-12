@@ -17,8 +17,7 @@ var validateRequest = function(req, res, next) {
  
   if (token || key) {
     try {
-      var decoded = jwt.decode(token, require('../config/secret.js')());
-      console.log(decoded);
+      var decoded = jwt.decode(token, requestire('../config/secret.js')());
  
       if (decoded.exp <= Date.now()) {
         res.status(400);
@@ -29,6 +28,16 @@ var validateRequest = function(req, res, next) {
         return;
       }
  
+
+      if (decoded.user != key) {
+        res.status(403);
+        res.json({
+          "status": 403,
+          "message": "Not Authorized"
+        });
+        return;
+      }
+
       // Authorize the user to see if s/he can access our resources
       users.validateOne(key, function(err, dbUser){
         console.log(dbUser);

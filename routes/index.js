@@ -12,11 +12,9 @@ var users = require("../controllers/users.js");
  * Routes that can be accessed by any one
  */
 
-
 router.post('/login', auth.authenticate);
-
- 
 router.post('/users', users.create);
+
 /*
  * Routes that can be accessed only by autheticated users
  */

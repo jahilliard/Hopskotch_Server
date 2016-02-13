@@ -14,6 +14,7 @@ var users = require("../controllers/users.js");
 
 router.post('/login', auth.authenticate);
 router.post('/users', users.create);
+router.get('/login/facebook', auth.fbAuthenticate);
 
 /*
  * Routes that can be accessed only by autheticated users

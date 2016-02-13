@@ -3,10 +3,7 @@ var express = require('express'),
   fs = require('fs'),
   morgan = require('morgan'),
   bodyParser = require('body-parser');
-var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-var port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
-console.log("IP address: " + ipaddress);
-console.log("Port: " + port);
+var config = require('./config/config.js');
 
 var hskey = fs.readFileSync('hacksparrow-key.pem');
 var hscert = fs.readFileSync('hacksparrow-cert.pem');
@@ -16,7 +13,7 @@ var options = {
     cert: hscert
 };
 
-var passport = require("./middleware/passport.js")
+var passport = require("./middleware/passport.js");
 var app = express(options);
 
 app.use(morgan('dev'));
@@ -47,7 +44,7 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-app.listen(port, ipaddress, function() {
+app.listen(config.port, config.ipaddress, function() {
         console.log('%s: Node server started on %s:%d ...',
-                        Date(Date.now() ), ipaddress, port);
+                        Date(Date.now() ), config.ipaddress, config.port);
 });

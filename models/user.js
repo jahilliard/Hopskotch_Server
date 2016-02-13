@@ -10,12 +10,27 @@ var User = {
   	email: "",
   	password: "",
   	fbId: "",
-  	phoneNum: "",
-  	accessToken: ""
+  	phoneNum: ""
   },
 
   allUsers: function(callback){
     mongoDB.find("user", {}, callback);
+  },
+
+  getOne: function(selector, callback){
+    mongoDB.findOne("user", selector, callback);
+  },
+
+  fbSignUpUser: function(id){
+    mongoDB.insert("user", {
+        "id" : id
+      }, function(err, newUser){
+        if (err) {
+          callback(err, null)
+        } else {
+          callback(null, newUser);
+      };
+    });
   },
 
   signUpUser: function(email, password, callback){

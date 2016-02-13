@@ -1,5 +1,5 @@
 var restaurant = require("../models/restaurant.js");
-var helper = require("../helpers/helper.js")
+var helper = require("../helpers/helper.js");
 
 var restaurants = {
   getAll: function(req, res) {

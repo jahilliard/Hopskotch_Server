@@ -26,14 +26,10 @@ var users = {
     });
   },
 
-  getOne: function(req, res, callback) {
-    user.loginUser(req.body.email, req.body.password, 
+  getOne: function(selector, callback) {
+    user.getOne(selector, 
       function(err, user){
-        if (err) {
-          callback(req, res, false);
-        } else {
-          callback(req, res, user);
-        }
+        callback(err, user);
     });
   },
 

@@ -17,8 +17,8 @@ var validateRequest = function(req, res, next) {
  
   if (token || key) {
     try {
-      var decoded = jwt.decode(token, requestire('../config/secret.js')());
- 
+      var decoded = jwt.decode(token, require('../config/secret.js')());
+      
       if (decoded.exp <= Date.now()) {
         res.status(400);
         res.json({
@@ -27,7 +27,6 @@ var validateRequest = function(req, res, next) {
         });
         return;
       }
- 
 
       if (decoded.user != key) {
         res.status(403);
@@ -39,10 +38,9 @@ var validateRequest = function(req, res, next) {
       }
 
       // Authorize the user to see if s/he can access our resources
-      users.validateOne(key, function(err, dbUser){
-        console.log(dbUser);
+      users.getByEmail(key, function(err, dbUser){
         if (dbUser) {
-            if ((req.url.indexOf('admin') >= 0 && dbUser.role == 'admin') || (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/v1/') >= 0)) {
+            if ((req.url.indexOf('admin') >= 0 && dbUser.data.role == 'admin') || (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/v1/') >= 0)) {
               next(); // To move to next middleware
             } else {
               res.status(403);

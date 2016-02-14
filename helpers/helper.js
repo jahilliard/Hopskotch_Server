@@ -4,8 +4,10 @@ var helper = {
 		  if (!(fieldName in req.body)) {
 		    res.status(400);
 		    res.json({"message": "request missing field: " + fieldName});
+		    return 1;
 		  }
 		});
+		return 0;
 	}
 }
 

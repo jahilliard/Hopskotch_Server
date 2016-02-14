@@ -25,7 +25,7 @@ router.get('/login/facebook', auth.fbAuthenticate);
  * Routes that can be accessed only by authenticated & authorized users
  */
 router.get('/api/v1/admin/users/', users.getAll);
-router.get('/api/v1/admin/user/:id', users.getOne);
+router.get('/api/v1/admin/user/:id', users.getById);
 router.put('/api/v1/admin/user/:id', users.update);
 router.delete('/api/v1/admin/user/:id', users.delete);
 

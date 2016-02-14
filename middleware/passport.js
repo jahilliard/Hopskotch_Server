@@ -1,36 +1,31 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookTokenStrategy = require('passport-facebook-token');
-var users = require('../controllers/users.js');
 var User = require('../models/user.js');
+var users = require('../controllers/users.js');
 var config = require('../config/config.js');
 
 const FACEBOOK_APP_ID = "240059072994113";
 const FACEBOOK_APP_SECRET = "d2b25c515e72fc81b32a7fec0865e49e";
+
+function getAttributesFromProfile(profile){
+  var attributes = 
+    {
+      "fbId": profile.id, 
+      "firstName": profile.name,
+    }
+
+  return attributes;
+}
 
 passport.use(new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
   },
 
-  function(username, password, done) { 
-    // check in mongo if a user with username exists or not
-    users.login(username, password,
-      function(err, user) {
-        // In case of any error, return using the done method
-        if (err)
-          return done(err);
-
-        if (user) {
-          // User and password both match, return user from 
-          // done method which will be treated like success
-          return done(null, user);
-        } else {
-          return done(null, false);
-        }
-      }
-    );
-}));
+  function(email, password, done) { 
+    users.login(email, password, done);
+  }));
 
 passport.use(new FacebookTokenStrategy({
     clientID: FACEBOOK_APP_ID,
@@ -39,18 +34,21 @@ passport.use(new FacebookTokenStrategy({
 
   function(accessToken, refreshToken, profile, done) {
     process.nextTick(function() {
-      users.getOne({ 'id' : profile.id }, function(err, user) {
+      User.prototype.getByFbId(profile.id, function(err, returnedUser) {
         if (err) {
           return done(err);
         }
-        if (user) {
-          return done(null, user);
+        if (returnedUser) {
+          return done(null, returnedUser);
         } else {
-          User.fbSignUpUser(profile.id, function(err, newUser){
+          var attributes = getAttributesFromProfile(profile);
+          var newUser = new User(attributes);
+          newUser.save(function(err, newUser){
             if (err){
-              return done(err);
+              return done(err, null);
+            } else {
+              return done(null, newUser);
             }
-            return done(null, newUser)
           });
         }
       });

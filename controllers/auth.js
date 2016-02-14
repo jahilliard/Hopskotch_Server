@@ -24,8 +24,7 @@ var auth = {
 				res.status(401);
 				return res.json({ error: "wrong credentials" });
 			}
-
-			res.json({authToken: genToken({user: user.email})});
+			res.json({authToken: genToken({user: user.data.email})});
 		}) (req, res, next);
 	},
 

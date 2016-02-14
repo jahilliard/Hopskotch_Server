@@ -1,8 +1,8 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookTokenStrategy = require('passport-facebook-token');
-var User = require('../models/user.js');
-var users = require('../controllers/users.js');
+var User = require('../models/User.js');
+var UserController = require('../controllers/UserController.js');
 var config = require('../config/config.js');
 
 const FACEBOOK_APP_ID = "240059072994113";
@@ -24,7 +24,7 @@ passport.use(new LocalStrategy({
   },
 
   function(email, password, done) { 
-    users.login(email, password, done);
+    UserController.checkLoginCredentials(email, password, done);
   }));
 
 passport.use(new FacebookTokenStrategy({

@@ -1,5 +1,5 @@
 var jwt = require('jwt-simple');
-var users = require('../controllers/users.js');
+var UserController = require('../controllers/UserController.js');
  
 var validateRequest = function(req, res, next) {
  
@@ -38,7 +38,7 @@ var validateRequest = function(req, res, next) {
       }
 
       // Authorize the user to see if s/he can access our resources
-      users.getByEmail(key, function(err, dbUser){
+      UserController.getByEmail(key, function(err, dbUser){
         if (dbUser) {
             if ((req.url.indexOf('admin') >= 0 && dbUser.data.role == 'admin') || (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/v1/') >= 0)) {
               next(); // To move to next middleware

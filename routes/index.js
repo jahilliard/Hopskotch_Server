@@ -3,7 +3,7 @@ var router = express.Router();
  
 var AuthController = require('../controllers/AuthController.js');
 var RoomController = require("../controllers/RoomController.js");
-//var RequestController = require("../controllers/RequestController.js");
+var MatchController = require("../controllers/MatchController.js");
 var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
 
@@ -36,15 +36,15 @@ router.delete('/api/v1/admin/locations/:id', LocationController.delete);
 
 router.post('/api/v1/admin/locations/:id/menu/', LocationController.addMenuItems);
 router.delete('/api/v1/admin/locations/:id/menu/', LocationController.deleteMenuItems);
-/*
-router.get('/api/v1/admin/requests/', RequestController.getAll);
-router.get('/api/v1/admin/requests/:id', RequestController.getOne);
-router.post('/api/v1/admin/requests/', RequestController.create);
-router.post('/api/v1/admin/requests/:id', RequestController.update);
-router.delete('/api/v1/admin/requests/:id', RequestController.delete);
 
-router.post('/api/v1/admin/requests/:id/matches/', RequestController.addMatch);
-router.delete('/api/v1/admin/requests/:id/matches/', RequestController.removeMatch);*/
+router.get('/api/v1/admin/matches/', MatchController.getAll);
+router.get('/api/v1/admin/matches/:id', MatchController.getById);
+router.post('/api/v1/admin/matches/', MatchController.create);
+router.post('/api/v1/admin/matches/:id', MatchController.update);
+router.delete('/api/v1/admin/matches/:id', MatchController.delete);
+
+router.post('/api/v1/admin/matches/:id/matchList/', MatchController.addMatches);
+router.delete('/api/v1/admin/matches/:id/matchList/', MatchController.removeMatches);
 
 router.get('/api/v1/admin/rooms/', RoomController.getAll);
 router.get('/api/v1/admin/rooms/:id', RoomController.getById);

@@ -4,7 +4,7 @@ var router = express.Router();
 var AuthController = require('../controllers/AuthController.js');
 //var QueueController = require("../controllers/QueueController.js");
 //var RequestController = require("../controllers/RequestController.js");
-//var RestaurantController = require("../controllers/RestaurantController.js");
+var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
 
 
@@ -24,20 +24,20 @@ router.get('/login/facebook', AuthController.fbAuthenticate);
  * Routes that can be accessed only by authenticated & authorized users
  */
 router.get('/api/v1/admin/users/', UserController.getAll);
-router.get('/api/v1/admin/user/:id', UserController.getById);
-router.post('/api/v1/admin/user/:id', UserController.update);
-router.delete('/api/v1/admin/user/:id', UserController.delete);
+router.get('/api/v1/admin/users/:id', UserController.getById);
+router.post('/api/v1/admin/users/:id', UserController.update);
+router.delete('/api/v1/admin/users/:id', UserController.delete);
 
-/*router.get('/api/v1/admin/restaurants/', RestaurantController.getAll);
-router.get('/api/v1/admin/restaurants/:id', RestaurantController.getById);
-router.post('/api/v1/admin/restaurants/', RestaurantController.create);
-router.post('/api/v1/admin/restaurants/:id', RestaurantController.update);
-router.delete('/api/v1/admin/restaurants/:id', RestaurantController.delete);
+router.get('/api/v1/admin/locations/', LocationController.getAll);
+router.get('/api/v1/admin/locations/:id', LocationController.getById);
+router.post('/api/v1/admin/locations/', LocationController.create);
+router.post('/api/v1/admin/locations/:id', LocationController.update);
+router.delete('/api/v1/admin/locations/:id', LocationController.delete);
 
-router.post('/api/v1/admin/restaurants/:id/menu/', RestaurantController.addMenuItems);
-router.delete('/api/v1/admin/restaurants/:id/menu/', RestaurantController.deleteMenuItems);
+router.post('/api/v1/admin/locations/:id/menu/', LocationController.addMenuItems);
+router.delete('/api/v1/admin/locations/:id/menu/', LocationController.deleteMenuItems);
 
-router.get('/api/v1/admin/requests/', RequestController.getAll);
+/*router.get('/api/v1/admin/requests/', RequestController.getAll);
 router.get('/api/v1/admin/requests/:id', RequestController.getOne);
 router.post('/api/v1/admin/requests/', RequestController.create);
 router.post('/api/v1/admin/requests/:id', RequestController.update);

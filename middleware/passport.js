@@ -11,8 +11,7 @@ const FACEBOOK_APP_SECRET = "d2b25c515e72fc81b32a7fec0865e49e";
 function getAttributesFromProfile(profile){
   var attributes = 
     {
-      "fbId": profile.id, 
-      "firstName": profile.name,
+      "fbId": profile.id
     }
 
   return attributes;
@@ -34,7 +33,7 @@ passport.use(new FacebookTokenStrategy({
 
   function(accessToken, refreshToken, profile, done) {
     process.nextTick(function() {
-      User.prototype.getByFbId(profile.id, function(err, returnedUser) {
+      User.getByFbId(profile.id, function(err, returnedUser) {
         if (err) {
           return done(err);
         }
@@ -43,7 +42,7 @@ passport.use(new FacebookTokenStrategy({
         } else {
           var attributes = getAttributesFromProfile(profile);
           var newUser = new User(attributes);
-          newUser.save(function(err, newUser){
+          newUser.saveUser(function(err, newUser){
             if (err){
               return done(err, null);
             } else {

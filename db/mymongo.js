@@ -1,8 +1,8 @@
   // TODO: safe option is deprecated, use mongo write concerns instead
 var util = require("util");
-var mongoClient = require('mongodb').MongoClient;
+var mongoose = require('mongoose');
 
-var MongoDB = {
+/*var MongoDB = {
 
   myMongo: false,
   // default to a 'localhost' configuration:
@@ -90,12 +90,21 @@ var MongoDB = {
       }
     });
   }
-};
+};*/
 
-mongoClient.connect('mongodb://'+MongoDB.connection_string, function(err, db) {
-  if (err) doError(err);
-  console.log("Connected correctly to server");
-  MongoDB.myMongo = db;
+var MongoDB = {
+  initializeMongoose: function(callback){
+    var db = mongoose.connection;
+
+    db.on('error', console.error.bind(console, 'connection error:'));
+
+    db.once('open', callback);
+
+    var connection_string = '127.0.0.1:27017/barrDev';
+    mongoose.connect('mongodb://' + connection_string);
+  }
+}
+
 
   //initiailize indexes for those collections that need it
   /*MongoDB.createIndex("request", "matchList.requesterId", {unique: true}, 
@@ -105,6 +114,5 @@ mongoClient.connect('mongodb://'+MongoDB.connection_string, function(err, db) {
         throw(err);
       }
     })*/
-})
 
 module.exports = MongoDB;

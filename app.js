@@ -15,36 +15,43 @@ var options = {
 
 var passport = require("./middleware/passport.js");
 var app = express(options);
+var AuthController = require("./controllers/AuthController.js");
+var myMongo = require("./db/mymongo.js")
 
-app.use(morgan('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(passport.initialize());
- 
-app.all('/*', function(req, res, next) {
-  // CORS headers
-  res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  // Set custom headers for CORS
-  res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
-  if (req.method == 'OPTIONS') {
-    res.status(200).end();
-  } else {
-    next();
-  }
-});
+//entry point
+myMongo.initializeMongoose(initialize);
 
-app.all('/api/v1/*', [require('./middleware/validateRequest.js')]);
+function initialize(){
+  app.use(morgan('dev'));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(passport.initialize());
 
-app.use('/', require('./routes'));
+  app.all('/*', function(req, res, next) {
+    // CORS headers
+    res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    // Set custom headers for CORS
+    res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
+    if (req.method == 'OPTIONS') {
+      res.status(200).end();
+    } else {
+      next();
+    }
+  });
 
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
+  app.all('/api/v1/*', AuthController.validateRequest);
 
-app.listen(config.port, config.ipaddress, function() {
-        console.log('%s: Node server started on %s:%d ...',
-                        Date(Date.now() ), config.ipaddress, config.port);
-});
+  app.use('/', require('./routes'));
+
+  app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+  });
+
+  app.listen(config.port, config.ipaddress, function() {
+          console.log('%s: Node server started on %s:%d ...',
+                          Date(Date.now() ), config.ipaddress, config.port);
+  });
+}

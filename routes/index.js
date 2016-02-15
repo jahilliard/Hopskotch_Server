@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
  
 var AuthController = require('../controllers/AuthController.js');
-//var QueueController = require("../controllers/QueueController.js");
+var RoomController = require("../controllers/RoomController.js");
 //var RequestController = require("../controllers/RequestController.js");
 var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
@@ -36,23 +36,23 @@ router.delete('/api/v1/admin/locations/:id', LocationController.delete);
 
 router.post('/api/v1/admin/locations/:id/menu/', LocationController.addMenuItems);
 router.delete('/api/v1/admin/locations/:id/menu/', LocationController.deleteMenuItems);
-
-/*router.get('/api/v1/admin/requests/', RequestController.getAll);
+/*
+router.get('/api/v1/admin/requests/', RequestController.getAll);
 router.get('/api/v1/admin/requests/:id', RequestController.getOne);
 router.post('/api/v1/admin/requests/', RequestController.create);
 router.post('/api/v1/admin/requests/:id', RequestController.update);
 router.delete('/api/v1/admin/requests/:id', RequestController.delete);
 
 router.post('/api/v1/admin/requests/:id/matches/', RequestController.addMatch);
-router.delete('/api/v1/admin/requests/:id/matches/', RequestController.removeMatch);
+router.delete('/api/v1/admin/requests/:id/matches/', RequestController.removeMatch);*/
 
-router.get('/api/v1/admin/queues/', QueueController.getAll);
-router.get('/api/v1/admin/queues/:id', QueueController.getOne);
-router.post('/api/v1/admin/queues/', QueueController.create);
-router.post('/api/v1/admin/queues/:id', QueueController.update);
-router.delete('/api/v1/admin/queues/:id', QueueController.delete);
+router.get('/api/v1/admin/rooms/', RoomController.getAll);
+router.get('/api/v1/admin/rooms/:id', RoomController.getById);
+router.post('/api/v1/admin/rooms/', RoomController.create);
+router.post('/api/v1/admin/rooms/:id', RoomController.update);
+router.delete('/api/v1/admin/rooms/:id', RoomController.delete);
 
-router.post('/api/v1/admin/queues/:id/queue/', QueueController.addUserToQueue);
-router.delete('/api/v1/admin/queues/:id/queue/', QueueController.removeUserFromQueue);*/
+router.post('/api/v1/admin/rooms/:id/members/', RoomController.addMembersToRoom);
+router.delete('/api/v1/admin/rooms/:id/members/', RoomController.removeMembersFromRoom);
 
 module.exports = router;

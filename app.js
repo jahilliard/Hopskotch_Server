@@ -50,6 +50,10 @@ function initialize(){
     next(err);
   });
 
+  // Run the populate file... Uncomment Lines and restart server
+  // var populate = require("./test/populate.js");
+  // populate();
+
   app.listen(config.port, config.ipaddress, function() {
           console.log('%s: Node server started on %s:%d ...',
                           Date(Date.now() ), config.ipaddress, config.port);

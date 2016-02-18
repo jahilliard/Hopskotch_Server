@@ -41,4 +41,18 @@ LocationSchema.statics.getById = function(id, callback){
   });
 }
 
+LocationSchema.statics.getByName = function(name, callback){
+  this.findOne({"name": name}, function(err, foundLocation){
+    if (err) {
+      return callback(err, null);
+    } 
+
+    if (foundLocation){
+      return callback(null, foundLocation);
+    } else {
+      return callback(null, false);
+    }
+  });
+}
+
 module.exports = LocationSchema;

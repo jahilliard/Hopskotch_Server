@@ -5,8 +5,8 @@ var User = require('../models/User.js');
 var UserController = require('../controllers/UserController.js');
 var config = require('../config/config.js');
 
-const FACEBOOK_APP_ID = "240059072994113";
-const FACEBOOK_APP_SECRET = "d2b25c515e72fc81b32a7fec0865e49e";
+const FACEBOOK_APP_ID = "1774769169417863";
+const FACEBOOK_APP_SECRET = "bfbf840b9b878e3a43dde2364889b6da";
 
 function getAttributesFromProfile(profile){
   var attributes = 

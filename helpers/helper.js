@@ -1,13 +1,14 @@
 var helper = {
 	verifyBody: function(req, res, fields){
-		fields.forEach(function(fieldName){
-		  if (!(fieldName in req.body)) {
+		var bodyKeys = Object.keys(req.body);
+		for(var i = 0; i < fields.length; i++){
+		  if (!(fields[i] in bodyKeys)) {
 		    res.status(400);
-		    res.json({"message": "request missing field: " + fieldName});
-		    return 1;
+		    res.json({"message": "request missing field: " + fields[i]});
+		    return true;
 		  }
-		});
-		return 0;
+		};
+		return false;
 	}
 }
 

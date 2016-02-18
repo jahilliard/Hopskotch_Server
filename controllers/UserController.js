@@ -30,6 +30,7 @@ var UserController = {
     }
 
     if (validateFields(req.body.registrationInfo, req, res)) {
+      console.log("hello");
       return;
     }
 

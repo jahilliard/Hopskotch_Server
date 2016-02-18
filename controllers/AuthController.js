@@ -168,7 +168,7 @@ var auth = {
 					res.status(401);
 					return res.json({ error: "wrong credentials" });
 				}
-				res.json({id: user._id, authToken: genToken({fbId: user.fbId})});
+				res.json({id: user._id, fbId: user.fbId, authToken: genToken({fbId: user.fbId})});
 		})
 		(req, res, next);
 	},

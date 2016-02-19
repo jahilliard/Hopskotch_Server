@@ -32,12 +32,14 @@ passport.use(new FacebookTokenStrategy({
   },
 
   function(accessToken, refreshToken, profile, done) {
+    console.log("WTF")
     process.nextTick(function() {
       User.getByFbId(profile.id, function(err, returnedUser) {
         if (err) {
           return done(err);
         }
         if (returnedUser) {
+          returnedUser.isCreated = false;
           return done(null, returnedUser);
         } else {
           var attributes = getAttributesFromProfile(profile);
@@ -46,6 +48,7 @@ passport.use(new FacebookTokenStrategy({
             if (err){
               return done(err, null);
             } else {
+              newUser.isCreated = true;
               return done(null, newUser);
             }
           });

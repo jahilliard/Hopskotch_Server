@@ -25,7 +25,7 @@ router.get('/login/facebook', AuthController.fbAuthenticate);
  */
 router.get('/api/v1/users/', UserController.getAll);
 router.get('/api/v1/users/:id', UserController.getById);
-router.post('/api/v1/users/:id', UserController.update);
+router.post('/api/v1/users/update/:id', UserController.update);
 router.delete('/api/v1/users/:id', UserController.delete);
 
 router.get('/api/v1/locations/', LocationController.getAll);

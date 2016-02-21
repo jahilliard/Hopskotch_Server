@@ -32,7 +32,6 @@ passport.use(new FacebookTokenStrategy({
   },
 
   function(accessToken, refreshToken, profile, done) {
-    console.log("WTF")
     process.nextTick(function() {
       User.getByFbId(profile.id, function(err, returnedUser) {
         if (err) {
@@ -40,6 +39,9 @@ passport.use(new FacebookTokenStrategy({
         }
         if (returnedUser) {
           returnedUser.isCreated = false;
+          console.log(accessToken)
+          console.log(refreshToken)
+          console.log(profile)
           return done(null, returnedUser);
         } else {
           var attributes = getAttributesFromProfile(profile);

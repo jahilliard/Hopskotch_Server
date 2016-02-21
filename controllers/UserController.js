@@ -54,6 +54,9 @@ var UserController = {
   },
 
   update: function(req, res) {
+
+    console.log("HIT")
+
     if (helper.verifyBody(req, res, ['fields'])) {
       return;
     }

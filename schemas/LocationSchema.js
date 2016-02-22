@@ -9,11 +9,15 @@ var MenuItem = new Schema({
 })
 
 var LocationSchema = new Schema({
-  name: String,
-  mainImg: String,
-  lat: Number,
-  lng: Number,
-  menu: [MenuItem]
+  properties: {
+    name: String,
+    mainImg: String,
+    menu: [MenuItem]
+  },
+
+  geometry: {
+    coordinates: { type: [Number], index: '2dsphere'}
+  }
 });
 
 //static methods for the "Location" model
@@ -53,6 +57,28 @@ LocationSchema.statics.getByName = function(name, callback){
       return callback(null, false);
     }
   });
+}
+
+//radius in meters
+LocationSchema.statics.getInRadius = function(location, radius, callback){
+  this.find(
+    { "geometry.coordinates": {
+        $nearSphere: {
+          $geometry: {
+            type : "Point",
+            coordinates : location
+          },
+          $minDistance: 0,
+          $maxDistance: parseFloat(radius)
+        }
+      }
+    }, function(err, foundLocations){
+      if (err){
+        callback(err, null);
+      } else{
+        callback(null, foundLocations);
+      }
+    })
 }
 
 module.exports = LocationSchema;

@@ -97,7 +97,8 @@ var auth = {
 	  var fbId = (req.body && req.body.fbId) || (req.query && req.query.fbId) 
 	  	|| req.headers['fbId'];
 
-	  console.log(token);
+	  console.log(req.query);
+    console.log(token);
 	  console.log(key);
 	  console.log(fbId);
 	 

@@ -33,6 +33,7 @@ router.get('/api/v1/locations/:id', LocationController.getById);
 router.post('/api/v1/locations/', LocationController.create);
 router.post('/api/v1/locations/:id', LocationController.update);
 router.delete('/api/v1/locations/:id', LocationController.delete);
+router.get('/api/v1/locations/search/radius', LocationController.getInRadius);
 
 router.post('/api/v1/locations/:id/menu/', LocationController.addMenuItems);
 router.delete('/api/v1/locations/:id/menu/', LocationController.deleteMenuItems);

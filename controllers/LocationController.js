@@ -6,6 +6,14 @@ function validateFields(fields, req, res){
   return 0;
 }
 
+function getProps(fields){
+  return _.pick(fields, ['name', 'mainImg', 'menu']);
+}
+
+function getGeom(fields){
+  return _.pick(fields, ['coordinates']);
+}
+
 var LocationController = {
 
   getAll: function(req, res) {
@@ -42,9 +50,14 @@ var LocationController = {
       return;
     }
 
-    var newLocation = new Location(req.body.registrationInfo);
+    var props = getProps(req.body.registrationInfo);
+    var geom = getGeom(req.body.registrationInfo);
+    console.log(props);
+    console.log(geom);
+    var newLocation = new Location({properties: props, geometry: geom});
     newLocation.saveLocation(function(err, newLocation){
       if (err){
+        console.log(err);
         res.status(404);
         res.json({
           "message": err.message
@@ -196,6 +209,29 @@ var LocationController = {
           }
         });
     });
+  },
+
+  //radius in meters
+  getInRadius: function(req, res){
+    if (helper.verifyRequest(req, res, ['location', 'radius'])){
+      return;
+    }
+
+    Location.getInRadius(req.query.location, req.query.radius, 
+      function(err, foundLocations){
+        if (err){
+          res.status(404);
+            res.json({
+              "message": err.message
+            });
+          } else {
+            res.status(200);
+            res.json({
+              "message": "success",
+              "locations": foundLocations
+            })
+          }
+      })
   },
 
   deleteMenuItems: function(req, res) {

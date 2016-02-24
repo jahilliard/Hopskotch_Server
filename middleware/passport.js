@@ -11,7 +11,9 @@ const FACEBOOK_APP_SECRET = "bfbf840b9b878e3a43dde2364889b6da";
 function getAttributesFromProfile(profile){
   var attributes = 
     {
-      "fbId": profile.id
+      "fbId": profile.id,
+      "firstName": profile._json.first_name,
+      "lastName": profile._json.last_name
     }
 
   return attributes;

@@ -9,6 +9,7 @@
   "author": "Justin Hilliard",
   "license": "ISC",
   "dependencies": {
-    "passport-http-bearer": "^1.0.1"
+    "passport-http-bearer": "^1.0.1",
+    "ws": "^1.0.1"
   }
 }

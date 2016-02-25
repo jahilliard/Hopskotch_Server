@@ -16,7 +16,8 @@ var options = {
 var passport = require("./middleware/passport.js");
 var app = express(options);
 var AuthController = require("./controllers/AuthController.js");
-var myMongo = require("./db/mymongo.js")
+var myMongo = require("./db/mymongo.js");
+var webSocket = require("./ws/ws.js");
 
 //entry point
 myMongo.initializeMongoose(initialize);
@@ -54,8 +55,10 @@ function initialize(){
   // var populate = require("./test/populate.js");
   // populate();
 
-  app.listen(config.port, config.ipaddress, function() {
+  var server = app.listen(config.port, config.ipaddress, function() {
           console.log('%s: Node server started on %s:%d ...',
                           Date(Date.now() ), config.ipaddress, config.port);
   });
+
+  webSocket.initializeWebSocket(server);
 }

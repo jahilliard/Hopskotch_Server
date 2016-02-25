@@ -79,6 +79,45 @@ function validateFb(fbId, req, res, next){
 }
 
 var auth = {
+  validateJSONAuth: function(authObj, callback){
+    var token = authObj.access_token;
+
+    // x-key is the email
+    var key = authObj.id;
+
+    var fbId = authObj.fbId;
+
+    console.log(token);
+    console.log(key);
+    if (!((token && key) || (token && fbId))){
+      callback("Invalid access_token, key, or fbId");
+      return;
+    }
+
+    try {
+      var decoded = jwt.decode(token, require('../config/secret.js')());
+      console.log(decoded);
+      if (decoded.exp <= Date.now()) {
+        callback("Token Expired");
+        return;
+      }
+
+      var userAuth = decoded.user;
+      var fbAuth = decoded.fbId;
+
+      if ((userAuth && (userAuth != key)) || (fbAuth && (fbAuth != fbId))) {
+        callback("Not Authorized");
+        return;
+      }
+
+      //success
+      callback(null);
+    } catch (err) {
+      console.log(err);
+      callback("Oops something went wrong");
+    }
+  },
+
 	validateRequest: function(req, res, next) {
 	  // When performing a cross domain request, you will recieve
 	  // a preflighted request first. This is to check if our the app
@@ -90,7 +129,7 @@ var auth = {
 	  var token = (req.body && req.body.access_token) || 
 	  	(req.query && req.query.access_token) || req.headers['x-access-token'];
 
-    // x-key is the email
+    // x-key is the id
 	  var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) 
 	  	|| req.headers['x-key'];
 
@@ -158,7 +197,7 @@ var auth = {
 				res.status(401);
 				return res.json({ error: "wrong credentials" });
 			}
-			res.json({authToken: genToken({user: user.email})});
+			res.json({id: user.id, authToken: genToken({user: user.id})});
 		}) (req, res, next);
 	},
 
@@ -170,7 +209,8 @@ var auth = {
 					res.status(401);
 					return res.json({ error: "wrong credentials" });
 				}
-				res.json({isCreated: user.isCreated, id: user._id, fbId: user.fbId, authToken: genToken({fbId: user.fbId})});
+
+				res.json({isCreated: user.isCreated, id: user._id, fbId: user.fbId, authToken: genToken({user: user._id})});
 		})
 		(req, res, next);
 	},

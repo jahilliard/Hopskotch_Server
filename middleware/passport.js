@@ -24,7 +24,7 @@ passport.use(new LocalStrategy({
     passwordField: 'password'
   },
 
-  function(email, password, done) { 
+  function(email, password, done) {
     UserController.checkLoginCredentials(email, password, done);
   }));
 

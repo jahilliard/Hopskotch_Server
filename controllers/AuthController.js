@@ -79,20 +79,12 @@ function validateFb(fbId, req, res, next){
 }
 
 var auth = {
-  validateJSONAuth: function(authObj, callback){
-    var token = authObj.access_token;
-
-    // x-key is the email
-    var key = authObj.id;
-
-    var fbId = authObj.fbId;
-
+  validateSocketAuth: function(access_token, id, callback){
+    var token = access_token;
+    //key is the user id
+    var key = id;
     console.log(token);
     console.log(key);
-    if (!((token && key) || (token && fbId))){
-      callback("Invalid access_token, key, or fbId");
-      return;
-    }
 
     try {
       var decoded = jwt.decode(token, require('../config/secret.js')());
@@ -103,9 +95,8 @@ var auth = {
       }
 
       var userAuth = decoded.user;
-      var fbAuth = decoded.fbId;
 
-      if ((userAuth && (userAuth != key)) || (fbAuth && (fbAuth != fbId))) {
+      if (userAuth && (userAuth != key)) {
         callback("Not Authorized");
         return;
       }

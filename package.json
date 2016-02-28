@@ -9,7 +9,15 @@
   "author": "Justin Hilliard",
   "license": "ISC",
   "dependencies": {
-    "passport-http-bearer": "^1.0.1",
-    "ws": "^1.0.1"
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4",
+    "fs": "0.0.2",
+    "jwt-simple": "^0.4.1",
+    "lodash": "^4.5.1",
+    "mongoose": "^4.4.5",
+    "passport-facebook-token": "^3.2.0",
+    "passport-local": "^1.0.0",
+    "socket.io": "^1.4.5"
   }
 }

@@ -19,9 +19,9 @@ function isAdminUrl(url){
 	return (url.indexOf('admin') >= 0);
 }
 
-function validateNormal(email, req, res, next){
+function validateNormal(userId, req, res, next){
 	// Authorize the user to see if s/he can access our resources
-	User.getByEmail(email, function(err, dbUser){
+	User.getById(userId, function(err, dbUser){
 	  if (dbUser) {
 	  	//check if is an admin-privilged resource
 	  	var reqAdmin = isAdminUrl(req.url);
@@ -132,7 +132,7 @@ var auth = {
 	  console.log(req.query);
     console.log(token);
 	  console.log(key);
-	  console.log(fbId);
+	  console.log(!((token && key) || (token && fbId)) == false);
 	 
 	 	if (!((token && key) || (token && fbId))){
 	    res.status(401);

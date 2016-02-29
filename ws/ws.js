@@ -1,72 +1,88 @@
-var WebSocket = require('ws').Server;
 var AuthController = require("../controllers/AuthController.js");
 var Chat = require("../models/Chat.js");
 var Message = require("../models/Message.js");
-
-
-
-var ws = null;
-var clients = {};
+var socketIdToUserId = {};
+var userIdToSocket = {};
 
 //initialize websocket components
 function initialize(server){
-	ws = new WebSocket({server: server});
+	var io = require('socket.io')(server);
+	//register handshake
+	io.use(function(socket, next){
+		var handshakeData = socket.request._query;
+		console.log(handshakeData);
 
-	ws.on('connection', function connection(ws) {
-		ws.on('message', function incoming(data, flags) {
-			var JSONdata = JSON.parse(data);
-			AuthController.validateJSONAuth(JSONdata, function(errString){
-				if (errString){
-					var error = {error: errString}
-					ws.send(JSON.stringify(error));
-					return;
-				} 
-				onMessage(ws, JSONdata, flags);
-			})
-		});
+		if (!('id' in handshakeData)){
+			return next(new Error("missing id"));
+		}
 
-		ws.on('close', function close(ws) {
-			onClose(ws);
+		if (!('access_token' in handshakeData)){
+			return next(new Error("missing access_token"));
+		}
+
+		var userId = handshakeData.id;
+		var accessToken = handshakeData.access_token;
+
+		AuthController.validateSocketAuth(accessToken, userId, function(errString){
+			if (errString){
+				next(new Error(errString));
+				return;
+			}
+			//add connection to our managed list of connections
+			socketIdToUserId[socket.id] = userId;
+			userIdToSocket[userId] = socket;
+			next(); 
 		});
+	});
+
+	io.on('connection', function (socket) {
+		console.log("new connection!");
+		initializeHandlers(socket);
 	})
 }
 
-function onClose(ws){
-	 keys = Object.keys(clients);
-	 for (var i = 0; i < keys.length; i++){
-	 	if(clients[keys[i]] == ws) {
-	 		delete clients[keys[i]];
-	 		return;
-	 	}
-	 }
+function initializeHandlers(socket){
+	socket.on('ChatMessage', function(data, callback){
+		processChatMessage(socket, data, callback);
+	});
+
+	socket.on('disconnect', function() {
+		onDisconnect(socket);
+	});
 }
 
-//expect "date", "receiver", and "message" in messageBody
-function processChatMessage(ws, sender, messageBody){
-	var receiver = messageBody.receiver;
-	var receiverSocket = clients[receiver];
+function onDisconnect(socket){
+	 console.log("socket disconnected!")
+	 var userid = socketIdToUserId[socket.id];
+	 delete socketIdToUserId[socket.id];
+	 delete userIdToSocket[userid];
+}
+
+//expect "date", "receiver", and "message" in data
+function processChatMessage(socket, data, callback){
+	var sender = socketIdToUserId[socket.id];
+	var receiver = data.receiver;
+	var receiverSocket = userIdToSocket[receiver];
 	if (receiverSocket == null){
-		var error = {error: "Receiver of message is not registered for chat"};
-		ws.send(JSON.stringify(error));
+		callback('error', {error: "Receiver of message is not registered for chat"});
 		return;
 	}
 
 	Chat.getChat(sender, receiver, function(err, docs){
-		console.log("HELLO");
 		if (err){
-			return ws.send(JSON.stringify(err));
+			return callback("error", {error: err});
 		} else {
 			if (docs.length > 0){
 				var chatId = docs[0]._id;
 				var newMessage = new Message({to: receiver, from: sender, 
-					chatId: chatId, date: messageBody.date, 
-					message: messageBody.message});
+					chatId: chatId, date: data.date, 
+					message: data.message});
 				newMessage.saveMessage(function(err, newMsg){
 					if (err){
-						return ws.send(JSON.stringify(err));
+						return callback("error", {error: err});
 					} else {
-						ws.send(JSON.stringify({message: "success"}));
-						receiverSocket.send(JSON.stringify({message: "newMessages"}));
+						callback("success", {message: "success"});
+						receiverSocket.emit("newMessage", {from: sender, message: data.message});
 					}
 				});
 			} else {
@@ -74,14 +90,14 @@ function processChatMessage(ws, sender, messageBody){
 				var newChat = new Chat({user1: sender, user2: receiver});
 				newChat.saveChat(function(err, newChat){
 					var newMessage = new Message({to: receiver, from: sender, 
-					chatId: newChat._id, date: messageBody.date, 
-					message: messageBody.message});
+					chatId: newChat._id, date: data.date, 
+					message: data.message});
 					newMessage.saveMessage(function(err, newMsg){
 						if (err){
-							return ws.send(JSON.stringify(err));
+							return callback("error", {error: err});
 						} else {
-							ws.send(JSON.stringify({message: "success"}));
-							receiverSocket.send(JSON.stringify({message: "newMessages"}));
+							callback("success", {message: "success"});
+							receiverSocket.emit("newMessage", {from: sender, message: data.message});
 						}
 					});
 				});
@@ -90,39 +106,10 @@ function processChatMessage(ws, sender, messageBody){
 	});
 }
 
-function onMessage(ws, data, flags){
-	switch (data.messageType) {
-		case "ChatMessage":
-			if (!(data.id in clients)){
-				console.log(clients);
-				var error = {error: "Socket not registered yet, please register first"}
-				ws.send(JSON.stringify(error));
-				return;
-			}
-		  processChatMessage(ws, data.id, data.data)
-			break;
-
-		case "RegisterSocket":
-			if (!("id" in data)){
-				var error = {error: "MISSING id field"}
-				ws.send(JSON.stringify(error));
-				return;
-			}
-
-			clients[data.id] = ws
-			ws.send(JSON.stringify({"message": "success"}));
-			break;
-
-		case "Default":
-			var error = {error: "MISSING messageType field"}
-			ws.send(JSON.stringify(error));
-	}
-}
-
 var webSocket = {
 	initializeWebSocket: function(server){
 		initialize(server);
-	},
+	}
 }
 
 

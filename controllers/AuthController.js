@@ -125,6 +125,8 @@ var auth = {
 	 
 	  // We skip the token outh for [OPTIONS] requests.
 	  //if(req.method == 'OPTIONS') next();
+    console.log('validating req');
+    console.log(req.body);
 	 
 	  var token = (req.body && req.body.access_token) || 
 	  	(req.query && req.query.access_token) || req.headers['x-access-token'];

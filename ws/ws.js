@@ -109,6 +109,15 @@ function processChatMessage(socket, data, callback){
 var webSocket = {
 	initializeWebSocket: function(server){
 		initialize(server);
+	},
+
+	sendNewOffers: function(myId, otherUser, matchId, newOffers){
+		var otherUserSocket = userIdToSocket[otherUser];
+		if (otherUserSocket == null){
+			return;
+		}
+
+		otherUserSocket.emit("newOffers", {from: myId, matchId: matchId, newOffers: newOffers});
 	}
 }
 

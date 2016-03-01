@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
-var MatchSchema = require('../schemas/MatchSchema.js');
+var MatchSchema = require('../schemas/MatchSchema.js').schema;
+var MatchEnum = require('../schemas/MatchSchema.js').MatchEnum;
 var _ = require('lodash');
 
 MatchSchema.methods.updateMatch = function(updatedFields){  

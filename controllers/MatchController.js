@@ -1,6 +1,7 @@
 var Match = require("../models/Match.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
+var Socket = require('../ws/ws.js');
 
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
@@ -33,22 +34,61 @@ var MatchController = {
     });
   },
  
-  create: function(req, res) {
+  //creates a new chat if one with userId1 = req.body.id and 
+  //userId2 = req.body.registrationInfo.otherUser (or vice versa)
+  //does not already exist
+  createIfNotExists: function(req, res) {
     if (helper.verifyBody(req, res, ['registrationInfo'])) {
       return;
     }
-    var newMatch = new Match(req.body.registrationInfo);
-    newMatch.saveMatch(function(err, newMatch){
+
+    var info = req.body.registrationInfo;
+    var criteria = {};
+
+    if (info.otherUser < req.body.id){
+      criteria.userId1 = info.otherUser;
+      criteria.userId2 = req.body.id;
+    } else {
+      criteria.userId1 = req.body.id;
+      criteria.userId2 = info.otherUser;
+    }
+
+    Match.getMatchByCriteria(criteria, function(err, foundMatchArray) {
       if (err){
         res.status(404);
         res.json({
           "message": err.message
         });
-      } else {
-        res.status(201);
-        res.json({
-          "newId": newMatch.id,
+        return;
+      } 
+
+      if (foundMatchArray.length == 0){
+        //create new match object
+        var newMatch = new Match();
+
+        newMatch.userId1 = criteria.userId1;
+        newMatch.userId2 = criteria.userId2;
+
+        newMatch.saveMatch(function(err, newMatch){
+          if (err){
+            res.status(404);
+            res.json({
+              "message": err.message
+            });
+          } else {
+            res.status(201);
+            res.json({
+              "matchId": newMatch.id,
+            });
+          }
         });
+        return;
+      } else {
+        res.status(200);
+        res.json({
+          "matchId": foundMatchArray[0].id,
+        });
+        return;
       }
     });
   },
@@ -64,7 +104,7 @@ var MatchController = {
       return;
     }
 
-    Match.getById(req.params.id, function(err, targetMatch){
+    Match.getById(req.params.id, function(err, foundMatch){
       if (err){
         res.status(404);
         res.json({
@@ -73,7 +113,7 @@ var MatchController = {
         return;
       } 
 
-      if (!targetMatch){
+      if (!foundMatch){
         res.status(404);
         res.json({
           "message": "Match with this id does not exist"
@@ -81,20 +121,52 @@ var MatchController = {
         return;
       }
 
-      targetMatch.updateMatch(fields);
-      targetMatch.saveMatch(function(err, updatedMatch){
-        if(err){
-          res.status(404);
-          res.json({
-            "message": err.message
-          });
+      var offers = req.body.fields.offers;
+      var currentOffers = null;
+      var otherUser = null;
+
+      if (foundMatch.userId1 == req.body.id){
+        currentOffers = foundMatch.user1Offers;
+        otherUser = foundMatch.userId2;
+      } else {
+        currentOffers = foundMatch.user2Offers;
+        otherUser = foundMatch.userId1;
+      }
+
+      //filter out the gibberish
+      offers = _.filter(offers, function(value){return Match.isValidOfferOption(value)});
+      //see if there is any new offers
+      var difference = _.difference(offers, currentOffers);
+
+      if(difference.length > 0){
+        newOffers = currentOffers.concat(difference);
+        if (foundMatch.userId1 == req.body.id){
+          foundMatch.user1Offers = newOffers;
         } else {
-          res.status(200);
-          res.json({
-            "message": "success"
-          })
+          foundMatch.user2Offers = newOffers;
         }
-      });
+
+        foundMatch.saveMatch(function(err, savedMatch){
+          if (err){
+            res.status(404);
+            return res.json({
+              "message": err.message
+            });
+          } else {
+            //notify people of new offers (include matchId!)
+            Socket.sendNewOffers(req.body.id, otherUser, req.params.id, difference);
+            res.status(200);
+            return res.json({
+              "message": "success"
+            })
+          }
+        })
+      } else {
+        res.status(200);
+        return res.json({
+          "message": "success"
+        })
+      }
     })
   },
  
@@ -131,63 +203,85 @@ var MatchController = {
           }
         });
     });
-  },
+  }
 
-  addMatches: function(req, res) {
+  //each match has "otherUser" field designating which userId the offers are for
+  /*addMatches: function(req, res) {
     if (helper.verifyBody(req, res, ['newMatches'])) {
       return;
     }
 
-    Match.getById(req.params.id, function(err, targetMatch) {
-      if (err){
-        res.status(404);
-        res.json({
-          "message": err.message
-        });
-        return;
-      } 
+    var newMatches = req.body.newMatches;
 
-      if (!targetMatch){
-        res.status(404);
-        res.json({
-          "message": "Match with this id does not exist"
-        });
-        return;
-      }
+    for (int i = 0; i < newMatches.length; i++){
+      var singleMatch = newMatches[i];
+      var otherUser =  singleMatch.otherUser;
+      var user = singleMatch.user;
+      var criteria = {};
+      criteria.otherUser = otherUser;
+      criteria.user = user;
 
-      var newMatches = req.body.newMatches;
-      var oldMatches = targetMatch.get("matchList");
-
-      //check for people whose userIds are already in the room
-      for(var i = 0; i < newMatches.length; i++){
-        var nMatch = newMatches[i];
-        if(!_.isUndefined(_.find(oldMatches, function(oMatch)
-        {return oMatch.userId == nMatch.userId})))
-        {
-          res.status(404);
-          res.json({
-            "message": "Person with id: " + nMatch.userId + " already in room"
-          });
-          return;
-        }
-      }
-
-      var newMatches = oldMatches.concat(newMatches);
-      targetMatch.updateMatch({"matchList": newMatches});
-      targetMatch.saveMatch(function(err, updatedMatch) {
+      Match.getMatchByCriteria(criteria, function(err, foundMatch) {
         if (err){
           res.status(404);
           res.json({
             "message": err.message
           });
+          return;
+        } 
+
+        if (!foundMatch){
+          //create new match object
+          var newMatch = new Match();
+          newMatch.userId1 = user;
+          newMatch.userId2 = otherUser;
+          newMatch.user1Offers = singleMatch.offers;
+          newMatch.saveMatch(function(err, newMatch){
+            if (err){
+              res.status(404);
+              return res.json({
+                "message": err.message
+              });
+            } else {
+              res.status(200);
+              return res.json({
+                "message": "success"
+              })
+            }
+          });
         } else {
-          res.status(200);
-          res.json({
-            "message": "success"
-          })
+          var currentOffers = null;
+          if (foundMatch.userId1 == user){
+            currentOffers = foundMatch.user1Offers;
+          } else {
+            currentOffers = foundMatch.user2Offers;
+          }
+
+          //see if there is any new offers
+          if(_.difference(offers, currentOffers).length > 0){
+            if (foundMatch.userId1 == user){
+              foundMatch.user1Offers = offers;
+            } else {
+              foundMatch.user2Offers = offers;
+            }
+            foundMatch.saveMatch(function(err, savedMatch){
+              if (err){
+                res.status(404);
+                return res.json({
+                  "message": err.message
+                });
+              } else {
+                //notify people of new offers
+                res.status(200);
+                return res.json({
+                  "message": "success"
+                })
+              }
+            })
+          }
         }
       });
-    });
+    }
   },
 
   removeMatches: function(req, res) {
@@ -234,7 +328,7 @@ var MatchController = {
           }
         });
     });
-  }
+  }*/
 };
  
 module.exports = MatchController;

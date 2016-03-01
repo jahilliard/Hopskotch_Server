@@ -27,36 +27,7 @@ function validateNormal(userId, req, res, next){
 	  	var reqAdmin = isAdminUrl(req.url);
       if (!reqAdmin || (reqAdmin && dbUser.role == 'admin'))
       {
-        next(); // To move to next middleware
-      } else {
-        res.status(403);
-        res.json({
-          "status": 403,
-          "message": "Not Authorized"
-        });
-        return;
-      }
-	  } else {
-      // No user with this name exists, respond back with a 401
-      res.status(401);
-      res.json({
-        "status": 401,
-        "message": "Invalid User"
-      });
-      return;
-	  }
-	}); 
-}
-
-function validateFb(fbId, req, res, next){
-	// Authorize the user to see if s/he can access our resources
-	User.getByFbId(fbId, function(err, dbUser){
-	  if (dbUser) {
-	  	//check if is an admin-privilged resource
-	  	var reqAdmin = isAdminUrl(req.url);
-	  	console.log(dbUser);
-      if (!reqAdmin || (reqAdmin && dbUser.role == 'admin'))
-      {
+        req.body.id = userId;
         next(); // To move to next middleware
       } else {
         res.status(403);
@@ -126,15 +97,11 @@ var auth = {
 	  var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) 
 	  	|| req.headers['x-key'];
 
-	  var fbId = (req.body && req.body.fbId) || (req.query && req.query.fbId) 
-	  	|| req.headers['fbId'];
-
 	  console.log(req.query);
     console.log(token);
 	  console.log(key);
-	  console.log(!((token && key) || (token && fbId)) == false);
 	 
-	 	if (!((token && key) || (token && fbId))){
+	 	if (!(token && key)){
 	    res.status(401);
 	    res.json({
 	      "status": 401,
@@ -156,9 +123,8 @@ var auth = {
       }
 
       var userAuth = decoded.user;
-      var fbAuth = decoded.fbId;
 
-      if ((userAuth && (userAuth != key)) || (fbAuth && (fbAuth != fbId))) {
+      if (userAuth && (userAuth != key)) {
         res.status(403);
         res.json({
           "status": 403,
@@ -167,11 +133,7 @@ var auth = {
         return;
       }
 
-      if (userAuth){
-      	validateNormal(userAuth, req, res, next);
-	    } else {
-	    	validateFb(fbAuth, req, res, next);
-	    }
+      validateNormal(userAuth, req, res, next);
     } catch (err) {
       res.status(500);
       res.json({

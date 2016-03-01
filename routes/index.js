@@ -40,12 +40,9 @@ router.delete('/api/v1/locations/:id/menu/', LocationController.deleteMenuItems)
 
 router.get('/api/v1/matches/', MatchController.getAll);
 router.get('/api/v1/matches/:id', MatchController.getById);
-router.post('/api/v1/matches/', MatchController.create);
+router.post('/api/v1/matches/', MatchController.createIfNotExists);
 router.post('/api/v1/matches/:id', MatchController.update);
 router.delete('/api/v1/matches/:id', MatchController.delete);
-
-router.post('/api/v1/matches/:id/matchList/', MatchController.addMatches);
-router.delete('/api/v1/matches/:id/matchList/', MatchController.removeMatches);
 
 router.get('/api/v1/rooms/', RoomController.getAll);
 router.get('/api/v1/rooms/:id', RoomController.getById);

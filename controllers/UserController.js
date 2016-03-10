@@ -58,12 +58,14 @@ var UserController = {
     console.log("HIT")
 
     if (helper.verifyBody(req, res, ['fields'])) {
+      console.log("helper")
       return;
     }
 
     var fields = req.body.fields;
 
     if (validateFields(fields, req, res)){
+      console.log("helper")
       return;
     }
 

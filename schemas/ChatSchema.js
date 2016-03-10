@@ -27,6 +27,7 @@ var ChatSchema = new Schema({
 })
 
 ChatSchema.statics.getChat = function(user1, user2, callback){
+  //I think that User 2 might be an error
   this.find({$or: [{user1: user1, user2: user2}, {user1: user2, user2: user2}]},
     function(err, docs){
       if (err){

@@ -7,10 +7,12 @@ function validateFields(fields, req, res){
 }
 
 function getProps(fields){
+  console.log(_.pick(fields, ['name', 'mainImg', 'menu']));
   return _.pick(fields, ['name', 'mainImg', 'menu']);
 }
 
 function getGeom(fields){
+  console.log(_.pick(fields, ['coordinates']));
   return _.pick(fields, ['coordinates']);
 }
 
@@ -52,6 +54,7 @@ var LocationController = {
 
     var props = getProps(req.body.registrationInfo);
     var geom = getGeom(req.body.registrationInfo);
+    console.log(req.body.registrationInfo);
     console.log(props);
     console.log(geom);
     var newLocation = new Location({properties: props, geometry: geom});

@@ -97,7 +97,6 @@ var auth = {
 	  var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) 
 	  	|| req.headers['x-key'];
 
-	  console.log(req.query);
     console.log(token);
 	  console.log(key);
 	 

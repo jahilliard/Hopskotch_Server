@@ -6,7 +6,7 @@ var RoomController = require("../controllers/RoomController.js");
 var MatchController = require("../controllers/MatchController.js");
 var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
-
+var ChatController = require("../controllers/ChatController.js");
 
 /*
  * Routes that can be accessed by any one
@@ -53,4 +53,6 @@ router.delete('/api/v1/rooms/:id', RoomController.delete);
 router.post('/api/v1/rooms/:id/members/', RoomController.addMembersToRoom);
 router.delete('/api/v1/rooms/:id/members/', RoomController.removeMembersFromRoom);
 
+router.get('/api/v1/chats/:id/messages/', ChatController.getUnreadChatMessages);
+router.get('/api/v1/chats/search', ChatController.getLatestChats);
 module.exports = router;

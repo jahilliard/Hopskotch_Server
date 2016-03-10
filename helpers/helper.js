@@ -1,10 +1,11 @@
+var _ = require('lodash');
+
 var helper = {
 	verifyBody: function(req, res, fields){
-		var bodyKeys = Object.keys(req.body);
 		for(var i = 0; i < fields.length; i++){
-		  if (bodyKeys.indexOf(fields[i]) <= -1) {
+		  if (_.get(req.body, fields[i], null) == null) {
 		    res.status(400);
-		    res.json({"message": "request missing field: " + fields[i]});
+		    res.json({"message": "body missing field: " + fields[i]});
 		    return true;
 		  }
 		};
@@ -12,9 +13,8 @@ var helper = {
 	},
 
 	verifyRequest: function(req, res, fields){
-		var queryKeys = Object.keys(req.query);
 		for(var i = 0; i < fields.length; i++){
-		  if (queryKeys.indexOf(fields[i]) <= -1) {
+		  if (_.get(req.query, fields[i], null) == null) {
 		    res.status(400);
 		    res.json({"message": "request missing field: " + fields[i]});
 		    return true;

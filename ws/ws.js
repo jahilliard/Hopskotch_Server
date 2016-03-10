@@ -52,10 +52,10 @@ function initializeHandlers(socket){
 }
 
 function onDisconnect(socket){
-	 console.log("socket disconnected!")
-	 var userid = socketIdToUserId[socket.id];
-	 delete socketIdToUserId[socket.id];
-	 delete userIdToSocket[userid];
+	console.log("socket disconnected!")
+	var userid = socketIdToUserId[socket.id];
+	delete socketIdToUserId[socket.id];
+	delete userIdToSocket[userid];
 }
 
 //expect "date", "receiver", and "message" in data
@@ -63,10 +63,7 @@ function processChatMessage(socket, data, callback){
 	var sender = socketIdToUserId[socket.id];
 	var receiver = data.receiver;
 	var receiverSocket = userIdToSocket[receiver];
-	if (receiverSocket == null){
-		callback('error', {error: "Receiver of message is not registered for chat"});
-		return;
-	}
+	//TODO: check if in same circle
 
 	Chat.getChat(sender, receiver, function(err, docs){
 		if (err){
@@ -75,14 +72,16 @@ function processChatMessage(socket, data, callback){
 			if (docs.length > 0){
 				var chatId = docs[0]._id;
 				var newMessage = new Message({to: receiver, from: sender, 
-					chatId: chatId, date: data.date, 
+					chatId: chatId, isRead: false, date: new Date(), 
 					message: data.message});
 				newMessage.saveMessage(function(err, newMsg){
 					if (err){
 						return callback("error", {error: err});
 					} else {
 						callback("success", {message: "success"});
-						receiverSocket.emit("newMessage", {from: sender, message: data.message});
+						if (receiverSocket != null){
+							receiverSocket.emit("newMessage", {from: sender, message: data.message});
+						}
 					}
 				});
 			} else {
@@ -90,14 +89,16 @@ function processChatMessage(socket, data, callback){
 				var newChat = new Chat({user1: sender, user2: receiver});
 				newChat.saveChat(function(err, newChat){
 					var newMessage = new Message({to: receiver, from: sender, 
-					chatId: newChat._id, date: data.date, 
+					chatId: newChat._id, isRead: false, date: new Date(), 
 					message: data.message});
 					newMessage.saveMessage(function(err, newMsg){
 						if (err){
 							return callback("error", {error: err});
 						} else {
 							callback("success", {message: "success"});
-							receiverSocket.emit("newMessage", {from: sender, message: data.message});
+							if (receiverSocket != null){
+								receiverSocket.emit("newMessage", {from: sender, message: data.message});
+							}
 						}
 					});
 				});

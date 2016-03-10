@@ -12,6 +12,7 @@ var LocationSchema = new Schema({
   properties: {
     name: String,
     mainImg: String,
+    address: String,
     menu: [MenuItem]
   },
 

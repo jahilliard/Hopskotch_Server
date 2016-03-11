@@ -46,6 +46,9 @@ function initializeHandlers(socket){
 		processChatMessage(socket, data, callback);
 	});
 
+	socket.on('reconnect', function() {} ); // connection restored  
+	socket.on('reconnecting', function(nextRetry) {} ); //trying to reconnect
+	socket.on('reconnect_failed', function() { console.log("Reconnect failed"); });
 	socket.on('disconnect', function() {
 		onDisconnect(socket);
 	});
@@ -78,9 +81,9 @@ function processChatMessage(socket, data, callback){
 					if (err){
 						return callback("error", {error: err});
 					} else {
-						callback("success", {message: "success"});
+						callback("success", {message: "success", chatId: chatId});
 						if (receiverSocket != null){
-							receiverSocket.emit("newMessage", {from: sender, message: data.message});
+							receiverSocket.emit("newMessage", {from: sender, message: data.message, chatId: chatId});
 						}
 					}
 				});
@@ -95,9 +98,9 @@ function processChatMessage(socket, data, callback){
 						if (err){
 							return callback("error", {error: err});
 						} else {
-							callback("success", {message: "success"});
+							callback("success", {message: "success", chatId: chatId});
 							if (receiverSocket != null){
-								receiverSocket.emit("newMessage", {from: sender, message: data.message});
+								receiverSocket.emit("newMessage", {from: sender, message: data.message, chatId: chatId});
 							}
 						}
 					});

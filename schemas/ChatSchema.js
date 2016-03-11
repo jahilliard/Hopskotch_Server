@@ -52,12 +52,12 @@ ChatSchema.statics.markRead = function(messageIds, callback){
 }
 
 ChatSchema.statics.getChat = function(user1, user2, callback){
-  this.find({$or: [{user1: user1, user2: user2}, {user1: user2, user2: user1}]},
-    function(err, docs){
+  this.findOne({$or: [{user1: user1, user2: user2}, {user1: user2, user2: user1}]},
+    function(err, foundChat){
       if (err){
         callback(err, null);
       } else {
-        callback(null, docs);
+        callback(null, foundChat);
       }
     });
 }
@@ -75,9 +75,12 @@ ChatSchema.statics.getLatestChats = function(userId, callback){
     } else {
       var result = res.map(function(obj){
         if (obj.to != userId){
-          obj.latestMsg = null;
+          delete obj.latestMsg;
           obj.chatee = obj.to;
         } else {
+	  if (obj.isRead) {
+	   delete obj.latestMsg;
+	  }
           obj.chatee = obj.from;
         }
 

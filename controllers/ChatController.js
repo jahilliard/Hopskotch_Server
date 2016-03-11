@@ -43,21 +43,14 @@ var ChatController = {
         res.status(200);
 
         console.log(chatResults);
-        var result = chatResults.map(function(obj){
-          if (obj.isRead){
-            obj.latestMsg = null;
-          }
-          delete obj.isRead;
-          return obj;
-        });
 
-        res.json({"message": "success", "chats": result});
+        res.json({"message": "success", "chats": chatResults});
       }
     });
   },
 
   getUnreadChatMessages: function(req, res){
-    Chat.getById(req.params.id, function(err, foundChat){
+    Chat.getChat(req.params.id, req.params.chatee, function(err, foundChat){
       if (err){
         res.status(404);
         res.json({"errcode": err.code, "message": err.errmsg});

@@ -16,7 +16,7 @@ var MatchSchema = {
   },
 
   //TODO: can add check later that objectIds actually refer to exisitng objects
-  //using asynchrnous validators
+  //using asynchronous validators
   schema : null
 };
 

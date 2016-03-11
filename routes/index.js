@@ -53,6 +53,6 @@ router.delete('/api/v1/rooms/:id', RoomController.delete);
 router.post('/api/v1/rooms/:id/members/', RoomController.addMembersToRoom);
 router.delete('/api/v1/rooms/:id/members/', RoomController.removeMembersFromRoom);
 
-router.get('/api/v1/chats/:id/messages/', ChatController.getUnreadChatMessages);
+router.get('/api/v1/chats/:id/messages/:chatee', ChatController.getUnreadChatMessages);
 router.get('/api/v1/chats/search', ChatController.getLatestChats);
 module.exports = router;

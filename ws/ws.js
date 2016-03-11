@@ -68,12 +68,12 @@ function processChatMessage(socket, data, callback){
 	var receiverSocket = userIdToSocket[receiver];
 	//TODO: check if in same circle
 
-	Chat.getChat(sender, receiver, function(err, docs){
+	Chat.getChat(sender, receiver, function(err, doc){
 		if (err){
 			return callback("error", {error: err});
 		} else {
-			if (docs.length > 0){
-				var chatId = docs[0]._id;
+			if (doc){
+				var chatId = doc._id;
 				var newMessage = new Message({to: receiver, from: sender, 
 					chatId: chatId, isRead: false, date: new Date(), 
 					message: data.message});

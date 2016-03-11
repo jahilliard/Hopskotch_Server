@@ -54,13 +54,22 @@ var ChatController = {
       if (err){
         res.status(404);
         res.json({"errcode": err.code, "message": err.errmsg});
-      } else {
+        return;
+      } 
+
+      if (!foundChat){
+        res.status(404);
+        res.json({"errcode": 400, "message": "No such chat exists"});
+        return;
+      }
+
+      else {
         foundChat.getUnreadMessages(req.body.id, function(err, messages){
           if (err){
             res.status(404);
             res.json({"errcode": err.code, "message": err.errmsg});
           } else {
-            var messageIds = [];
+            /*var messageIds = [];
             //mark all the chat messages as read
             for(var i = 0; i < messages.length; i++){
               messageIds.push(messages[i]._id);
@@ -70,14 +79,32 @@ var ChatController = {
               if (err){
                 console.log(err);
               }
-            });
-
+            });*/
+            res.status(200);
             res.json({"message": "success", "chatMessages": messages});
           }
         });
       }
     });
+  },
+
+  setRead: function(req, res){
+    if (helper.verifyBody(req, res, ['messageIds'])) {
+      return;
+    }
+
+    var messageIds = req.body.messageIds;
+    Chat.markRead(messageIds, function(err, updateInfo){
+      if (err){
+        res.status(404);
+        res.json({"errcode": err.code, "message": err.errmsg});
+      } else {
+        res.status(200);
+        res.json({"message": "success"});
+      }
+    });
   }
+
 
   //each chat has "otherUser" field designating which userId the offers are for
   /*addChates: function(req, res) {

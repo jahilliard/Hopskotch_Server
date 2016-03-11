@@ -78,9 +78,9 @@ ChatSchema.statics.getLatestChats = function(userId, callback){
           delete obj.latestMsg;
           obj.chatee = obj.to;
         } else {
-	  if (obj.isRead) {
-	   delete obj.latestMsg;
-	  }
+      	  if (obj.isRead) {
+      	    delete obj.latestMsg;
+      	  }
           obj.chatee = obj.from;
         }
 

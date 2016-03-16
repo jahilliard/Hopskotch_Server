@@ -134,6 +134,7 @@ var auth = {
 
       validateNormal(userAuth, req, res, next);
     } catch (err) {
+console.log(err);
       res.status(500);
       res.json({
         "status": 500,

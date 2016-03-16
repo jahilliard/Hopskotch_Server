@@ -5,12 +5,12 @@ var _ = require('lodash');
 
 
 ChatSchema.methods.saveChat = function(callback){
-  this.save(function(err, location){
+  this.save(function(err, chat){
     if (err) {
       return callback(err, null);
     } 
 
-    return callback(null, location);
+    return callback(null, chat);
   });
 },
  

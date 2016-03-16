@@ -33,7 +33,25 @@ var ChatController = {
       }
     });
   },
- 
+
+  //test function
+  fillInLastMsgNumber: function(userId, chatResults, i, callback){
+    if (i == chatResults.length){
+      callback()
+      return;
+    } else {
+      Chat.getById(chatResults[i]._id, function(err, chat){
+        if (userId == chat.user1){
+          chatResults[i].lastMsgNum = chat.user1LastMsgNumber;
+        } else {
+          chatResults[i].lastMsgNum = chat.user2LastMsgNumber;
+        }
+        ChatController.fillInLastMsgNumber(userId, chatResults, i+1, callback);
+      })
+    }
+  },
+
+  //end test function
   getLatestChats: function(req, res){
     Chat.getLatestChats(req.body.id, function(err, chatResults) {
       if (err){
@@ -44,7 +62,15 @@ var ChatController = {
 
         console.log(chatResults);
 
-        res.json({"message": "success", "chats": chatResults});
+
+        //START TEST
+        var self = this;
+        ChatController.fillInLastMsgNumber(req.body.id, chatResults, 0, function(){
+          res.json({"message": "success", "chats": chatResults});
+        });
+        //END TEST
+
+        //res.json({"message": "success", "chats": chatResults});
       }
     });
   },

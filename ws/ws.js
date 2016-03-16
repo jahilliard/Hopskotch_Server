@@ -25,9 +25,12 @@ function initialize(server){
 
 		AuthController.validateSocketAuth(accessToken, userId, function(errString){
 			if (errString){
+				console.log("ERROR VALIDATING");
 				next(new Error(errString));
 				return;
 			}
+
+			console.log("VALIDATED")
 			//add connection to our managed list of connections
 			socketIdToUserId[socket.id] = userId;
 			userIdToSocket[userId] = socket;
@@ -49,6 +52,25 @@ function initializeHandlers(socket){
 	socket.on('reconnect', function() {} ); // connection restored  
 	socket.on('reconnecting', function(nextRetry) {} ); //trying to reconnect
 	socket.on('reconnect_failed', function() { console.log("Reconnect failed"); });
+
+	//test function
+	socket.on('lastMsgNumber', function(data, callback){
+		var sender = socketIdToUserId[socket.id];
+		var receiver = data.receiver;
+		lastMsgNumber = -1;
+		Chat.getChat(sender, receiver, function(err, doc){
+			if (doc){
+				if (doc.user1 == sender){
+					lastMsgNumber = doc.user1LastMsgNumber;
+				} else {
+					lastMsgNumber = doc.user2LastMsgNumber;
+				}
+			} 
+
+			callback({"lastMsgNumber": lastMsgNumber});
+		});
+	});
+
 	socket.on('disconnect', function() {
 		onDisconnect(socket);
 	});
@@ -66,47 +88,80 @@ function processChatMessage(socket, data, callback){
 	var sender = socketIdToUserId[socket.id];
 	var receiver = data.receiver;
 	var receiverSocket = userIdToSocket[receiver];
+	var messageNumber = data.messageNumber;
 	//TODO: check if in same circle
+	console.log("PROCESSING CHAT");
 
-	Chat.getChat(sender, receiver, function(err, doc){
-		if (err){
-			return callback("error", {error: err});
-		} else {
-			if (doc){
-				var chatId = doc._id;
-				var newMessage = new Message({to: receiver, from: sender, 
-					chatId: chatId, isRead: false, date: new Date(), 
-					message: data.message});
-				newMessage.saveMessage(function(err, newMsg){
-					if (err){
-						return callback("error", {error: err});
-					} else {
-						callback("success", {message: "success", chatId: chatId});
-						if (receiverSocket != null){
-							receiverSocket.emit("newMessage", {from: sender, message: data.message, chatId: chatId});
-						}
-					}
-				});
+	//check out if this message has been recieved before
+	Message.getByMessageNumber(messageNumber, sender, receiver, function(err, foundDoc){
+		if (foundDoc){
+			//message has been sent before, just send confirmation and return
+			callback("success", {sentMessage: foundDoc});
+			return;
+		}
+
+		Chat.getChat(sender, receiver, function(err, doc){
+			if (err){
+				return callback("error", {error: err});
 			} else {
-				//create new chat
-				var newChat = new Chat({user1: sender, user2: receiver});
-				newChat.saveChat(function(err, newChat){
+				if (doc){
+					var chatId = doc._id;
 					var newMessage = new Message({to: receiver, from: sender, 
-					chatId: newChat._id, isRead: false, date: new Date(), 
-					message: data.message});
+						chatId: chatId, isRead: false, date: new Date(), 
+						message: data.message, messageNumber: messageNumber});
+
+					//start of testing
+					if (sender == doc.user1){
+						doc.user1LastMsgNumber = messageNumber;
+					} else {
+						doc.user2LastMsgNumber = messageNumber;
+					}
+					doc.saveChat(function(err, chat){});
+					//end of testing
+
 					newMessage.saveMessage(function(err, newMsg){
 						if (err){
 							return callback("error", {error: err});
 						} else {
-							callback("success", {message: "success", chatId: chatId});
+							callback("success", {sentMessage: newMsg});
 							if (receiverSocket != null){
-								receiverSocket.emit("newMessage", {from: sender, message: data.message, chatId: chatId});
+								receiverSocket.emit("newMessage", {message: newMsg});
 							}
 						}
 					});
-				});
+				} else {
+					//create new chat
+					var newChat = new Chat({user1: sender, user2: receiver});
+					newChat.saveChat(function(err, newChat){
+						var newMessage = new Message({to: receiver, from: sender, 
+						chatId: newChat._id, isRead: false, date: new Date(), 
+						message: data.message, messageNumber: messageNumber});
+
+						//start of testing
+						if (sender == newChat.user1){
+							newChat.user1LastMsgNumber = messageNumber;
+						} else {
+							newChat.user2LastMsgNumber = messageNumber;
+						}
+						newChat.saveChat(function(err, chat){});
+						//end of testing
+
+						newMessage.saveMessage(function(err, newMsg){
+							if (err){
+								return callback("error", {error: err});
+							} else {
+	console.log("MESSAGE SAVED");
+								callback("success", {sentMessage: newMsg});
+								if (receiverSocket != null){
+	console.log("EMITTING MESAGE");
+								receiverSocket.emit("newMessage", {message: newMsg});
+								}
+							}
+						});
+					});
+				}
 			}
-		}
+		});
 	});
 }
 

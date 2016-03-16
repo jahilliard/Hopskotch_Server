@@ -23,6 +23,14 @@ var ChatSchema = new Schema({
     ref: 'User',
     required: true,
     validate: [isValidMongoId, 'Not a valid ObjectId']
+  },
+
+  user1LastMsgNumber: {
+    type: Number
+  }, 
+
+  user2LastMsgNumber: {
+    type: Number
   }
 })
 

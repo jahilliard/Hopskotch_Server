@@ -1,6 +1,8 @@
 var Room = require("../models/Room.js");
+var User = require("../models/User.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
+var ws = require("../ws/ws.js");
 
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
@@ -133,6 +135,130 @@ var RoomController = {
     });
   },
 
+  addMemberToRoom: function(req, res) {
+    var joineeId = req.params.userId;
+    var roomId = req.params.id;
+
+    Room.getById(roomId, function(err, targetRoom) {
+      if (err){
+        res.status(404);
+        res.json({
+          "message": err.message
+        });
+        return;
+      } 
+
+      if (!targetRoom){
+        res.status(404);
+        res.json({
+          "message": "Room with this id does not exist"
+        });
+        return;
+      }
+
+      User.getById(joineeId, function(err, newMember) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+        if (!newMember){
+          res.status(404);
+          res.json({
+            "message": "User does not exist"
+          });
+          return;
+        }
+
+        if (newMember.currentCircle != "" && newMember.currentCircle != roomId) {
+          console.log(newMember.currentCircle);
+          res.status(404);
+          res.json({
+            "message": "Cannot join new circle without leaving old one"
+          });
+          return;
+        }
+
+        Room.getAllMembers(roomId, function(err, members) {
+          newMember.currentCircle = roomId;
+          newMember.saveUser(function(err, savedUser){
+            res.status(200);
+            res.json({
+              "message": "success",
+              "members": members
+            });
+            //notify all people in circle of new member
+            ws.notifyUsersNewCircleMember(members, savedUser);
+          });
+        });
+      });
+    });
+  },
+
+  removeMemberFromRoom: function(req, res) {
+    var joineeId = req.params.userId;
+    var roomId = req.params.id;
+
+    Room.getById(roomId, function(err, targetRoom) {
+      if (err){
+        res.status(404);
+        res.json({
+          "message": err.message
+        });
+        return;
+      } 
+
+      if (!targetRoom){
+        res.status(404);
+        res.json({
+          "message": "Room with this id does not exist"
+        });
+        return;
+      }
+
+      User.getById(joineeId, function(err, member) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+        if (!member){
+          res.status(404);
+          res.json({
+            "message": "User does not exist"
+          });
+          return;
+        }
+
+        if (member.currentCircle != roomId) {
+          res.status(404);
+          res.json({
+            "message": "Cannot leave circle user is not in"
+          });
+          return;
+        }
+
+        member.currentCircle = "";
+        member.saveUser(function(err, savedUser){
+          Room.getAllMembers(roomId, function(err, members) {
+            res.status(200);
+            res.json({
+              "message": "success"
+            });
+            ws.notifyUsersCircleMemberLeave(members, savedUser);
+          });
+        });
+      });
+    });
+  }
+
+  /*
   addMembersToRoom: function(req, res) {
     if (helper.verifyBody(req, res, ['newMembers'])) {
       return;
@@ -188,9 +314,9 @@ var RoomController = {
         }
       });
     });
-  },
+  },*/
 
-  removeMembersFromRoom: function(req, res) {
+  /*removeMembersFromRoom: function(req, res) {
     if (helper.verifyBody(req, res, ['deleteMembers']))
       return;
 
@@ -233,7 +359,6 @@ var RoomController = {
           }
         });
     });
-  }
+  }*/
 };
- 
 module.exports = RoomController;

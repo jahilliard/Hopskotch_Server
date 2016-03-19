@@ -26,6 +26,7 @@ router.get('/login/facebook', AuthController.fbAuthenticate);
 router.get('/api/v1/users/', UserController.getAll);
 router.get('/api/v1/users/:id', UserController.getById);
 router.post('/api/v1/users/update/:id', UserController.update);
+router.get('/api/v1/users/:id/circle', UserController.getCircleInfo);
 router.delete('/api/v1/users/:id', UserController.delete);
 
 router.get('/api/v1/locations/', LocationController.getAll);
@@ -50,8 +51,8 @@ router.post('/api/v1/rooms/', RoomController.create);
 router.post('/api/v1/rooms/:id', RoomController.update);
 router.delete('/api/v1/rooms/:id', RoomController.delete);
 
-router.post('/api/v1/rooms/:id/members/', RoomController.addMembersToRoom);
-router.delete('/api/v1/rooms/:id/members/', RoomController.removeMembersFromRoom);
+router.post('/api/v1/rooms/:id/members/:userId', RoomController.addMemberToRoom);
+router.delete('/api/v1/rooms/:id/members/:userId', RoomController.removeMemberFromRoom);
 
 router.get('/api/v1/chats/:id/messages/:chatee', ChatController.getUnreadChatMessages);
 router.get('/api/v1/chats/search', ChatController.getLatestChats);

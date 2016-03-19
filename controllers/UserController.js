@@ -1,4 +1,6 @@
+var _ = require('lodash');
 var User = require("../models/User.js");
+var Room = require("../models/Room.js");
 var helper = require("../helpers/helper.js");
 
 //used to specify what fields of the model a client cannot update
@@ -15,6 +17,14 @@ function validateFields(fields, req, res){
     res.status(401);
     res.json({
       "message": "cannot specify role field"
+    })
+    return 1;
+  }
+
+  else if ("currentCircle" in fields) {
+    res.status(401);
+    res.json({
+      "message": "cannot specify currentCircle field"
     })
     return 1;
   }
@@ -54,9 +64,6 @@ var UserController = {
   },
 
   update: function(req, res) {
-
-    console.log("HIT")
-
     if (helper.verifyBody(req, res, ['fields'])) {
       console.log("helper")
       return;
@@ -171,6 +178,66 @@ var UserController = {
         }
 
         res.json({"user": user});
+    });
+  },
+
+  getCircleInfo: function(req, res){
+    var userId = req.params.id;
+    User.getById(userId, function(err, member) {
+      if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+      if (!member){
+        res.status(404);
+        res.json({
+          "message": "User does not exist"
+        });
+        return;
+      }
+
+      if (member.currentCircle == ""){
+        res.status(200);
+        res.json({
+          "message": "success",
+          "circleId": "",
+          "members": []
+        })
+        return;
+      }
+
+      Room.getById(member.currentCircle, function(err, targetRoom) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+        if (!targetRoom){
+          res.status(404);
+          res.json({
+            "message": "Could not find room user is currently in"
+          });
+          return;
+        }
+
+        Room.getAllMembers(targetRoom._id, function(err, members) {
+          res.status(200);
+          //don't include yourself 
+          var filteredMembers = _.filter(members, function(user){return user._id != userId});
+          res.json({
+            "message": "success",
+            "circleId": member.currentCircle,
+            "members": filteredMembers
+          });
+        });
+      });
     });
   },
 

@@ -8,6 +8,10 @@ var validateEmail = function(email) {
     return re.test(email);
 };
 
+function isValidMongoId(id){
+  return mongoose.Types.ObjectId.isValid(id) || (id == "");
+}
+
 var UserSchema = new Schema({
 	firstName: String,
 	lastName : String,
@@ -35,7 +39,13 @@ var UserSchema = new Schema({
     sparse: true
   },
 
-	phoneNum: String
+	phoneNum: String,
+
+  currentCircle: {
+    type: String,/*mongoose.Schema.Types.ObjectId,*/
+    ref: 'Room',
+    validate: [isValidMongoId, 'Not a valid ObjectId']
+  },
 });
 
 UserSchema.pre('save', function(next) {

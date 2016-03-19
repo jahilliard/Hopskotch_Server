@@ -4,6 +4,7 @@ var bcrypt = require('bcrypt-nodejs');
 var config = require('../config/config.js');
 var User = require('../models/User.js');
 var Location = require('../models/Location.js');
+var User = require('../models/User.js');
 
 //TODO: can add check later that objectIds actually refer to exisitng objects
 //using asynchrnous validators
@@ -11,9 +12,9 @@ function isValidMongoId(id){
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-var Members = new Schema({
+/*var Members = new Schema({
   userId: {
-    type: String,/*mongoose.Schema.Types.ObjectId,*/
+    type: String,/*mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
     validate: [isValidMongoId, 'Not a valid ObjectId']
@@ -22,7 +23,7 @@ var Members = new Schema({
   nickname: String,
   firstName: String,
   lastName: String
-})
+})*/
 
 var RoomSchema = new Schema({
   locationId: {
@@ -31,9 +32,7 @@ var RoomSchema = new Schema({
     unique: true,
     required: true,
     validate: [isValidMongoId, 'Not a valid ObjectId']
-  },
-
-  members: [Members]
+  }
 });
 
 //static methods for the "Location" model
@@ -45,6 +44,13 @@ RoomSchema.statics.getAll = function(callback){
       callback(null, rooms);
     }
   });
+}
+
+RoomSchema.statics.getAllMembers = function(circleId, callback){
+  User
+  .find()
+  .where('currentCircle').equals(circleId)
+  .exec(callback);
 }
 
 RoomSchema.statics.getById = function(id, callback){

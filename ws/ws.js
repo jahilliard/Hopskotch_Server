@@ -177,6 +177,22 @@ var webSocket = {
 		}
 
 		otherUserSocket.emit("newOffers", {from: myId, matchId: matchId, newOffers: newOffers});
+	},
+
+	notifyUsersNewCircleMember: function(users, newMember) {
+		users.map(function(user){
+			if (user._id in userIdToSocket) {
+				userIdToSocket[user._id].emit("newCircleMember", {"newMember": newMember});
+			}
+		});
+	},
+
+	notifyUsersCircleMemberLeave: function(users, oldMember) {
+		users.map(function(user){
+			if (user._id in userIdToSocket) {
+				userIdToSocket[user._id].emit("circleMemberLeave", {"oldMember": oldMember});
+			}
+		})
 	}
 }
 

@@ -21,7 +21,8 @@ var Members = new Schema({
 
   nickname: String,
   firstName: String,
-  lastName: String
+  lastName: String, 
+  photoURL: String
 })
 
 var RoomSchema = new Schema({

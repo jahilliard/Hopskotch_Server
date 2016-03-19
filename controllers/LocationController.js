@@ -1,4 +1,5 @@
 var Location = require("../models/Location.js");
+var Room = require("../controllers/RoomController.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
 

@@ -1,10 +1,62 @@
 var Room = require("../models/Room.js");
+var Location = require("../models/Location.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
 
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
   return 0;
+}
+
+function addMembersToRoomHelper(err, res, req, newMembers, targetRoom){
+    console.log("adding member" + err);
+      if (err){
+        res.status(404);
+        res.json({
+          "message": err.message
+        });
+        return;
+      } 
+
+      if (!targetRoom){
+        res.status(404);
+        res.json({
+          "message": "Room with this id does not exist"
+        });
+        return;
+      }
+
+      var oldMembers = targetRoom.get("members");
+
+      //check for people whose userIds are already in the room
+      for(var i = 0; i < newMembers.length; i++){
+        var nMember = newMembers[i];
+        if(!_.isUndefined(_.find(oldMembers, function(oMember)
+        {return oMember.userId == nMember.userId})))
+        {
+          res.status(404);
+          res.json({
+            "message": "Person with id: " + nMember.userId + " already in room"
+          });
+          return;
+        }
+      }
+
+      var newMembers = oldMembers.concat(newMembers);
+      targetRoom.updateRoom({"members": newMembers});
+      targetRoom.saveRoom(function(err, updatedRoom) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+        } else {
+          res.status(200);
+          res.json({
+            "message": "success"
+          })
+        }
+      });
 }
 
 var RoomController = {
@@ -23,6 +75,18 @@ var RoomController = {
  
   getById: function(req, res) {
     Room.getById(req.params.id, function(err, room){
+      if(err){
+        res.status(404);
+        res.json({"errcode": err.code, "message": err.errmsg});
+      } else {
+        res.status(200);
+        res.json({"message": "success", "room": room});
+      }
+    });
+  },
+
+  getByLocationId: function(req, res) {
+    Room.getByLocationId(req.params.id, function(err, room){
       if(err){
         res.status(404);
         res.json({"errcode": err.code, "message": err.errmsg});
@@ -133,6 +197,30 @@ var RoomController = {
     });
   },
 
+  addMembersToRoomByLocation: function(req, res) {  
+    console.lo
+    if (helper.verifyBody(req, res, ['newMember', 'radius', 'coordinates'])) {
+      return;
+    }
+    Location.getInRadius(req.body.coordinates, req.body.radius, 
+      function(err, locations){
+      if (err){
+        res.status(404);
+        res.json({
+          "message": err.message
+        });
+        return;
+      } 
+      for (var i = locations.length - 1; i >= 0; i--) {
+        console.log(locations[i].id);
+        Room.getByLocationId(locations[i].id, function(err, targetRoom){
+          addMembersToRoomHelper(err, res, req, req.body.newMember, targetRoom);
+          return;
+        });
+      };
+    });
+  },
+
   addMembersToRoom: function(req, res) {
     if (helper.verifyBody(req, res, ['newMembers'])) {
       return;
@@ -146,47 +234,8 @@ var RoomController = {
         });
         return;
       } 
-
-      if (!targetRoom){
-        res.status(404);
-        res.json({
-          "message": "Room with this id does not exist"
-        });
-        return;
-      }
-
-      var newMembers = req.body.newMembers;
-      var oldMembers = targetRoom.get("members");
-
-      //check for people whose userIds are already in the room
-      for(var i = 0; i < newMembers.length; i++){
-        var nMember = newMembers[i];
-        if(!_.isUndefined(_.find(oldMembers, function(oMember)
-        {return oMember.userId == nMember.userId})))
-        {
-          res.status(404);
-          res.json({
-            "message": "Person with id: " + nMember.userId + " already in room"
-          });
-          return;
-        }
-      }
-
-      var newMembers = oldMembers.concat(newMembers);
-      targetRoom.updateRoom({"members": newMembers});
-      targetRoom.saveRoom(function(err, updatedRoom) {
-        if (err){
-          res.status(404);
-          res.json({
-            "message": err.message
-          });
-        } else {
-          res.status(200);
-          res.json({
-            "message": "success"
-          })
-        }
-      });
+      addMembersToRoomHelper(err, req.body.newMembers, targetRoom);
+      return;
     });
   },
 

@@ -94,7 +94,7 @@ var MatchController = {
   },
  
   update: function(req, res) {
-    if(helper.verifyBody(req, res, ['fields'])){
+    if(helper.verifyBody(req, res, ['fields.offers'])){
       return;
     }
 

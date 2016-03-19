@@ -44,7 +44,8 @@ var UserSchema = new Schema({
   currentCircle: {
     type: String,/*mongoose.Schema.Types.ObjectId,*/
     ref: 'Room',
-    validate: [isValidMongoId, 'Not a valid ObjectId']
+    validate: [isValidMongoId, 'Not a valid ObjectId'],
+    default: ""
   },
 });
 

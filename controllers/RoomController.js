@@ -149,7 +149,7 @@ var RoomController = {
   },
 
   addMemberToRoom: function(req, res) {
-    var joineeId = req.params.userId;
+    var newMemberId = req.params.userId;
     var roomId = req.params.id;
 
     Room.getById(roomId, function(err, targetRoom) {
@@ -169,50 +169,43 @@ var RoomController = {
         return;
       }
 
-      User.getById(joineeId, function(err, newMember) {
-        if (err){
+      targetRoom.addMemberToRoom(newMemberId, function(err, newMember){
+        if (err) {
           res.status(404);
           res.json({
             "message": err.message
           });
           return;
-        } 
-
-        if (!newMember){
-          res.status(404);
-          res.json({
-            "message": "User does not exist"
-          });
-          return;
-        }
-
-        if (newMember.currentCircle != "" && newMember.currentCircle != roomId) {
-          console.log(newMember.currentCircle);
-          res.status(404);
-          res.json({
-            "message": "Cannot join new circle without leaving old one"
-          });
-          return;
         }
 
         Room.getAllMembers(roomId, function(err, members) {
-          newMember.currentCircle = roomId;
-          newMember.saveUser(function(err, savedUser){
-            res.status(200);
+          if (err) {
+            res.status(404);
             res.json({
-              "message": "success",
-              "members": members
+              "message": "Could not retrieve circle members"
             });
-            //notify all people in circle of new member
-            ws.notifyUsersNewCircleMember(members, savedUser);
+            return;
+          }
+
+          //remove the new member from the list
+          var filteredMembers = _.filter(members, function(user){return user._id != newMemberId});
+
+          //notify new member of successful addition to circle
+          res.status(200);
+          res.json({
+            "message": "success",
+            "members": filteredMembers
           });
+
+          //notify all people in circle of new member
+          ws.notifyUsersNewCircleMember(filteredMembers, newMember);
         });
       });
     });
   },
 
   removeMemberFromRoom: function(req, res) {
-    var joineeId = req.params.userId;
+    var oldMemberId = req.params.userId;
     var roomId = req.params.id;
 
     Room.getById(roomId, function(err, targetRoom) {
@@ -232,43 +225,40 @@ var RoomController = {
         return;
       }
 
-      User.getById(joineeId, function(err, member) {
-        if (err){
+      targetRoom.removeMemberFromRoom(oldMemberId, function(err, oldMember){
+        if (err) {
           res.status(404);
           res.json({
             "message": err.message
           });
           return;
-        } 
-
-        if (!member){
-          res.status(404);
-          res.json({
-            "message": "User does not exist"
-          });
-          return;
         }
 
-        if (member.currentCircle != roomId) {
-          res.status(404);
-          res.json({
-            "message": "Cannot leave circle user is not in"
-          });
-          return;
-        }
-
-        member.currentCircle = "";
-        member.saveUser(function(err, savedUser){
-          Room.getAllMembers(roomId, function(err, members) {
-            res.status(200);
+        Room.getAllMembers(roomId, function(err, members) {
+          if (err) {
+            res.status(404);
             res.json({
-              "message": "success"
+              "message": "Could not retrieve circle members"
             });
-            ws.notifyUsersCircleMemberLeave(members, savedUser);
+            return;
+          }
+
+          //remove the new member from the list
+          var filteredMembers = _.filter(members, function(user){return user._id != oldMemberId});
+
+          //notify new member of successful removal from circle
+          res.status(200);
+          res.json({
+            "message": "success"
           });
+
+          //notify all people in circle of new member
+          ws.notifyUsersCircleMemberLeave(filteredMembers, oldMember);
         });
       });
     });
   }
+
 };
+
 module.exports = RoomController;

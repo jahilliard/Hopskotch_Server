@@ -12,19 +12,6 @@ function isValidMongoId(id){
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-/*var Members = new Schema({
-  userId: {
-    type: String,/*mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    validate: [isValidMongoId, 'Not a valid ObjectId']
-  },
-
-  nickname: String,
-  firstName: String,
-  lastName: String
-})*/
-
 var RoomSchema = new Schema({
   locationId: {
     type: String, /*mongoose.Schema.Types.ObjectId,*/

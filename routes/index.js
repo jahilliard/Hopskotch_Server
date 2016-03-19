@@ -45,6 +45,8 @@ router.post('/api/v1/matches/', MatchController.createIfNotExists);
 router.post('/api/v1/matches/:id', MatchController.update);
 router.delete('/api/v1/matches/:id', MatchController.delete);
 
+router.get('/api/v1/room/locations/:id', RoomController.getByLocationId);
+router.post('/api/v1/addMember/room/locations/', RoomController.addMembersToRoomByLocation);
 router.get('/api/v1/rooms/', RoomController.getAll);
 router.get('/api/v1/rooms/:id', RoomController.getById);
 router.post('/api/v1/rooms/', RoomController.create);

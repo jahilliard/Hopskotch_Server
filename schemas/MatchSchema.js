@@ -68,6 +68,18 @@ MatchSchema.schema.statics.getById = function(id, callback){
   });
 }
 
+MatchSchema.schema.statics.getMatchesForUser = function(userId, others, callback){
+  var query = {$or: [{'userId1': userId,  'userId2': {$in: others}}, {'userId2': userId,  'userId1': {$in: others}}]};
+  this.find(query, function(err, results){
+    if (err) {
+      console.log(err);
+      callback(err, null);
+    } else {
+      callback(null, results);
+    }
+  });
+}
+
 MatchSchema.schema.statics.getMatchByCriteria = function(criteria, callback){
   var userId1 = null;
   var userId2 = null;

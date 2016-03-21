@@ -190,7 +190,6 @@ var RoomController = {
           //remove the new member from the list
           var filteredMembers = _.filter(members, function(user){return user._id != newMemberId});
 
-          //notify new member of successful addition to circle
           res.status(200);
           res.json({
             "message": "success",

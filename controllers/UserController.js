@@ -1,7 +1,9 @@
 var _ = require('lodash');
-var User = require("../models/User.js");
-var Room = require("../models/Room.js");
+
 var helper = require("../helpers/helper.js");
+var Match = require("../models/Match.js");
+var Room = require("../models/Room.js");
+var User = require("../models/User.js");
 
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
@@ -204,8 +206,10 @@ var UserController = {
         res.status(200);
         res.json({
           "message": "success",
-          "circleId": "",
-          "members": []
+          "data": {
+            "circleId": "",
+            "members": []
+          }
         })
         return;
       }
@@ -228,15 +232,54 @@ var UserController = {
         }
 
         Room.getAllMembers(targetRoom._id, function(err, members) {
-          res.status(200);
           //don't include yourself 
-          var filteredMembers = _.filter(members, function(user){return user._id != userId});
-          res.json({
-            "message": "success",
-            "circleId": member.currentCircle,
-            "members": filteredMembers
+          var filteredMembers = _.filter(members, function(user){return user._id != userId;});
+          var filteredMemberIds = _.map(filteredMembers, function(user){return user._id;});
+
+          Match.getMatchesForUser(userId, filteredMemberIds, function(err, matches) {
+            if (err) {
+              res.status(404);
+              res.json({
+                "message": err.message
+              });
+              return;
+            }
+
+            //add match info
+            memberInfo = _.map(filteredMembers, function(otherMember){
+              var otherUserId = otherMember._id;
+              match = _.find(matches, function(m) { return (m.userId1 == otherUserId) || (m.userId2 == otherUserId) });
+
+
+              var matchInfo = {};
+              if(!_.isUndefined(match)) {
+                matchInfo.matchId = match._id;
+                if (match.userId1 == userId){
+                  matchInfo.yourOffers = match.user1Offers;
+                  matchInfo.otherOffers = match.user2Offers;
+                } else {
+                  matchInfo.yourOffers = match.user2Offers;
+                  matchInfo.otherOffers = match.user1Offers;
+                }
+              }
+
+              otherUserObject = otherMember.toObject();
+              otherUserObject.matches = matchInfo;
+              console.log(otherUserObject);
+              return otherUserObject;
+            });
+
+            res.status(200);
+            res.json({
+              "message": "success",
+              "data": {
+                "circleId": member.currentCircle,
+                "members": memberInfo
+              }
+            });
           });
         });
+
       });
     });
   },

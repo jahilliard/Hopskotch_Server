@@ -45,13 +45,14 @@ router.post('/api/v1/matches/', MatchController.createIfNotExists);
 router.post('/api/v1/matches/:id', MatchController.update);
 router.delete('/api/v1/matches/:id', MatchController.delete);
 
-router.get('/api/v1/room/locations/:id', RoomController.getByLocationId);
+router.get('/api/v1/rooms/locations/:id', RoomController.getByLocationId);
 router.get('/api/v1/rooms/', RoomController.getAll);
 router.get('/api/v1/rooms/:id', RoomController.getById);
 router.post('/api/v1/rooms/', RoomController.create);
 router.post('/api/v1/rooms/:id', RoomController.update);
 router.delete('/api/v1/rooms/:id', RoomController.delete);
 
+router.post('/api/v1/rooms/members/:userId', RoomController.addMemberToRoomByLocation);
 router.post('/api/v1/rooms/:id/members/:userId', RoomController.addMemberToRoom);
 router.delete('/api/v1/rooms/:id/members/:userId', RoomController.removeMemberFromRoom);
 

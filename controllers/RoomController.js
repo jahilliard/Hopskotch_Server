@@ -148,6 +148,83 @@ var RoomController = {
     });
   },
 
+  addMemberToRoomByLocation: function(req, res) {
+    if(helper.verifyBody(req, res, ['coordinate'])){
+      return;
+    }
+
+    var newMemberId = req.params.userId;
+    var locationCoor = req.body.coordinate;
+    var radius = 100
+
+    Location.getInRadius(locationCoor, radius, function(err, foundLocations){
+      var locationToAdd = foundLocations[0]
+
+      console.log(locationToAdd.id);
+      
+      if (!locationToAdd){
+        res.status(404);
+        res.json({
+          "message": "Room not in radius"
+        });
+        return;
+      }
+
+      var roomId = locationToAdd.id
+
+      Room.getByLocationId(roomId, function(err, targetRoom) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+        if (!targetRoom){
+          res.status(404);
+          res.json({
+            "message": "Room with this id does not exist"
+          });
+          return;
+        }
+
+        targetRoom.addMemberToRoom(newMemberId, function(err, newMember){
+          if (err) {
+            res.status(404);
+            res.json({
+              "message": err.message
+            });
+            return;
+          }
+
+          Room.getAllMembers(roomId, function(err, members) {
+            if (err) {
+              res.status(404);
+              res.json({
+                "message": "Could not retrieve circle members"
+              });
+              return;
+            }
+
+            //remove the new member from the list
+            var filteredMembers = _.filter(members, function(user){return user._id != newMemberId});
+
+            //notify new member of successful addition to circle
+            res.status(200);
+            res.json({
+              "message": "success",
+              "members": filteredMembers
+            });
+
+            //notify all people in circle of new member
+            ws.notifyUsersNewCircleMember(filteredMembers, newMember);
+          });
+        });
+      });
+    });
+  }, 
+
   addMemberToRoom: function(req, res) {
     var newMemberId = req.params.userId;
     var roomId = req.params.id;

@@ -161,10 +161,10 @@ var auth = {
 				if (err) {return next(err)}
 				if(!user) {
 					res.status(401);
-					return res.json({ error: "wrong credentials" });
+					return res.json({ error: "User does not exist" });
 				}
 
-				res.json({isCreated: user.isCreated, id: user._id, fbId: user.fbId, authToken: genToken({user: user._id})});
+				res.json({isCreated: user.isCreated, userInfo: user, authToken: genToken({user: user._id})});
 		})
 		(req, res, next);
 	},

@@ -8,12 +8,14 @@ var config = require('../config/config.js');
 const FACEBOOK_APP_ID = "1774769169417863";
 const FACEBOOK_APP_SECRET = "bfbf840b9b878e3a43dde2364889b6da";
 
-function getAttributesFromProfile(profile){
+function getFbAttributesFromProfile(profile){
+  console.log(profile);
   var attributes = 
     {
       "fbId": profile.id,
       "firstName": profile._json.first_name,
-      "lastName": profile._json.last_name
+      "lastName": profile._json.last_name,
+      "email": profile._json.email
     }
 
   return attributes;
@@ -46,7 +48,10 @@ passport.use(new FacebookTokenStrategy({
           console.log(profile)
           return done(null, returnedUser);
         } else {
-          var attributes = getAttributesFromProfile(profile);
+          var attributes = getFbAttributesFromProfile(profile);
+          //add additional attributes
+          attributes.nickname = "";
+          attributes.picture = [];
           var newUser = new User(attributes);
           newUser.saveUser(function(err, newUser){
             if (err){

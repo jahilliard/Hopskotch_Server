@@ -159,8 +159,6 @@ var RoomController = {
 
     Location.getInRadius(locationCoor, radius, function(err, foundLocations){
       var locationToAdd = foundLocations[0]
-
-      console.log(locationToAdd.id);
       
       if (!locationToAdd){
         res.status(404);

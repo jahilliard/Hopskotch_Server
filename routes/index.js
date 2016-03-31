@@ -7,6 +7,7 @@ var MatchController = require("../controllers/MatchController.js");
 var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
 var ChatController = require("../controllers/ChatController.js");
+var UserTrackerController = require("../controllers/UserTrackerController.js");
 
 /*
  * Routes that can be accessed by any one
@@ -59,5 +60,9 @@ router.delete('/api/v1/rooms/:id/members/:userId', RoomController.removeMemberFr
 router.get('/api/v1/chats/:id/messages/:chatee', ChatController.getUnreadChatMessages);
 router.get('/api/v1/chats/search', ChatController.getLatestChats);
 router.post('/api/v1/chats/:id/messages/:chatee/isRead', ChatController.setRead);
+
+router.get('/api/v1/usertracker', UserTrackerController.getAll);
+router.get('/api/v1/usertracker/search/:userId', UserTrackerController.getByUserId);
+router.post('/usertracker/save', UserTrackerController.saveLocation);
 
 module.exports = router;

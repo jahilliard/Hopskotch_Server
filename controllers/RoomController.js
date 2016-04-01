@@ -1,5 +1,6 @@
 var Room = require("../models/Room.js");
 var User = require("../models/User.js");
+var CheckIn = require("../models/CheckIn.js");
 var Location = require("../models/Location.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
@@ -156,6 +157,7 @@ var RoomController = {
     var newMemberId = req.params.userId;
     var locationCoor = req.body.coordinate;
     var radius = 100
+    var checkIn = new CheckIn();
 
     Location.getInRadius(locationCoor, radius, function(err, foundLocations){
       var locationToAdd = foundLocations[0]
@@ -167,7 +169,7 @@ var RoomController = {
         });
         return;
       }
-      console.log(locationToAdd.id);
+      
       var roomId = locationToAdd.id
 
       Room.getByLocationId(roomId, function(err, targetRoom) {

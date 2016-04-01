@@ -42,8 +42,7 @@ router.delete('/api/v1/locations/:id/menu/', LocationController.deleteMenuItems)
 
 router.get('/api/v1/matches/', MatchController.getAll);
 router.get('/api/v1/matches/:id', MatchController.getById);
-router.post('/api/v1/matches/', MatchController.createIfNotExists);
-router.post('/api/v1/matches/:id', MatchController.update);
+router.post('/api/v1/matches/:userId1/offers/:userId2', MatchController.update);
 router.delete('/api/v1/matches/:id', MatchController.delete);
 
 router.get('/api/v1/rooms/locations/:id', RoomController.getByLocationId);

@@ -37,20 +37,30 @@ var MatchController = {
   //creates a new chat if one with userId1 = req.body.id and 
   //userId2 = req.body.registrationInfo.otherUser (or vice versa)
   //does not already exist
-  createIfNotExists: function(req, res) {
-    if (helper.verifyBody(req, res, ['registrationInfo'])) {
+  update: function(req, res) {
+    if (helper.verifyBody(req, res, ["fields.offers"])) {
       return;
     }
-
-    var info = req.body.registrationInfo;
+    var fields = req.body.fields;
     var criteria = {};
+    var isNew = false;
 
-    if (info.otherUser < req.body.id){
-      criteria.userId1 = info.otherUser;
-      criteria.userId2 = req.body.id;
+    var otherUser = req.params.userId2;
+    var myId = req.params.userId1;
+
+    if (myId != req.body.id) {
+      res.status(404);
+      res.json({
+        "message": "Not Authorized to modify this user"
+      });
+    }
+
+    if (otherUser < myId){
+      criteria.userId1 = otherUser;
+      criteria.userId2 = myId;
     } else {
-      criteria.userId1 = req.body.id;
-      criteria.userId2 = info.otherUser;
+      criteria.userId1 = myId;
+      criteria.userId2 = otherUser;
     }
 
     Match.getMatchByCriteria(criteria, function(err, foundMatchArray) {
@@ -62,38 +72,110 @@ var MatchController = {
         return;
       } 
 
+      var targetMatch = null;
       if (foundMatchArray.length == 0){
         //create new match object
-        var newMatch = new Match();
+        var targetMatch = new Match();
+        targetMatch.userId1 = criteria.userId1;
+        targetMatch.userId2 = criteria.userId2;
+        isNew = true;
+      } 
 
-        newMatch.userId1 = criteria.userId1;
-        newMatch.userId2 = criteria.userId2;
+      /*else if (!("offers" in info) || info.offers.length == 0) {
+        res.status(200);
+        res.json({
+          "message": "success",
+          "matchId": targetMatch.id
+        });
 
-        newMatch.saveMatch(function(err, newMatch){
+        return;
+      }*/ 
+
+      else {
+        targetMatch = foundMatchArray[0];
+      }
+
+
+      if ("offers" in fields && fields.offers.length > 0) {
+        MatchController.updateOffers(fields.offers, req.body.id, targetMatch, function(newOffers, newMatch, otherUser){
+          newMatch.saveMatch(function(err, savedMatch){
+            if (err){
+              res.status(404);
+              res.json({
+                "message": err.message
+              });
+            } else {
+              //notify people of new offers (include matchId!)
+              Socket.sendNewOffers(myId, otherUser, targetMatch._id, newOffers);
+              res.status(200);
+              res.json({
+                "message": "success",
+                "matchId": savedMatch._id
+              });
+            }
+          });
+        });
+      } 
+
+      else if (isNew) {
+        targetMatch.saveMatch(function(err, savedMatch) {
           if (err){
             res.status(404);
             res.json({
               "message": err.message
             });
           } else {
-            res.status(201);
+            res.status(200);
             res.json({
-              "matchId": newMatch.id,
+              "message": "success",
+              "matchId": savedMatch._id
             });
           }
         });
-        return;
-      } else {
+      }
+
+      else {
         res.status(200);
         res.json({
-          "matchId": foundMatchArray[0].id,
+          "message": "success",
+          "matchId": targetMatch._id
         });
-        return;
       }
+
     });
   },
  
-  update: function(req, res) {
+  updateOffers: function(offers, offeringUserId, match, callback){
+    var otherUser = null;
+    if (match.userId1 == offeringUserId){
+        currentOffers = match.user1Offers;
+        otherUser = match.userId2;
+      } else {
+        currentOffers = match.user2Offers;
+        otherUser = match.userId1;
+      }
+
+      //filter out the gibberish
+      offers = _.filter(offers, function(value){return Match.isValidOfferOption(value)});
+
+      //see if there is any new offers
+      var difference = _.difference(offers, currentOffers);
+
+      if(difference.length > 0){
+        var newOffers = currentOffers.concat(difference);
+        if (match.userId1 == offeringUserId){
+          match.user1Offers = newOffers;
+        } else {
+          match.user2Offers = newOffers;
+        }
+
+        callback(difference, match, otherUser);
+      } else {
+        callback([], match, otherUser);
+      }
+  },
+
+  /*update: function(req, res) {
     if(helper.verifyBody(req, res, ['fields.offers'])){
       return;
     }
@@ -133,42 +215,32 @@ var MatchController = {
         otherUser = foundMatch.userId1;
       }
 
-      //filter out the gibberish
-      offers = _.filter(offers, function(value){return Match.isValidOfferOption(value)});
-      //see if there is any new offers
-      var difference = _.difference(offers, currentOffers);
-
-      if(difference.length > 0){
-        newOffers = currentOffers.concat(difference);
-        if (foundMatch.userId1 == req.body.id){
-          foundMatch.user1Offers = newOffers;
+      MatchController.updateOffers(offers, req.body.id, foundMatch, function(newOffers, newMatch, otherUser){
+        if(newOffers.length > 0){
+          foundMatch.saveMatch(function(err, savedMatch){
+            if (err){
+              res.status(404);
+              return res.json({
+                "message": err.message
+              });
+            } else {
+              //notify people of new offers (include matchId!)
+              Socket.sendNewOffers(req.body.id, otherUser, savedMatch._id, newOffers);
+              res.status(200);
+              return res.json({
+                "message": "success"
+              })
+            }
+          });
         } else {
-          foundMatch.user2Offers = newOffers;
+          res.status(200);
+          return res.json({
+            "message": "success"
+          });
         }
-
-        foundMatch.saveMatch(function(err, savedMatch){
-          if (err){
-            res.status(404);
-            return res.json({
-              "message": err.message
-            });
-          } else {
-            //notify people of new offers (include matchId!)
-            Socket.sendNewOffers(req.body.id, otherUser, req.params.id, difference);
-            res.status(200);
-            return res.json({
-              "message": "success"
-            })
-          }
-        })
-      } else {
-        res.status(200);
-        return res.json({
-          "message": "success"
-        })
-      }
+      });
     })
-  },
+  },*/
  
   delete: function(req, res) {
     Match.getById(req.params.id, 

@@ -26,13 +26,27 @@ var ChatSchema = new Schema({
   },
 
   user1LastMsgNumber: {
-    type: Number
+    type: Number,
+    default: 0
   }, 
 
   user2LastMsgNumber: {
-    type: Number
+    type: Number,
+    default: 0
   }
 })
+
+ChatSchema.statics.getChatsForUser = function(userId, others, callback){
+  var query = {$or: [{'user1': userId,  'user2': {$in: others}}, {'user2': userId,  'user1': {$in: others}}]};
+  this.find(query, function(err, results){
+    if (err) {
+      console.log(err);
+      callback(err, null);
+    } else {
+      callback(null, results);
+    }
+  });
+}
 
 ChatSchema.statics.getById = function(id, callback){
   this.findById(id, function(err, foundChat){

@@ -176,6 +176,7 @@ var webSocket = {
 			return;
 		}
 
+		console.log("emitting");
 		otherUserSocket.emit("newOffers", {from: myId, matchId: matchId, newOffers: newOffers});
 	},
 
@@ -190,10 +191,13 @@ var webSocket = {
 	notifyUsersCircleMemberLeave: function(users, oldMember) {
 		users.map(function(user){
 			if (user._id in userIdToSocket) {
+				console.log("MEMBER LEAVING");
 				userIdToSocket[user._id].emit("circleMemberLeave", {"oldMember": oldMember});
 			}
 		})
-	}
+	},
+
+
 }
 
 

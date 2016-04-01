@@ -4,6 +4,7 @@ var helper = require("../helpers/helper.js");
 var Match = require("../models/Match.js");
 var Room = require("../models/Room.js");
 var User = require("../models/User.js");
+var Chat = require("../models/Chat.js");
 
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
@@ -183,6 +184,38 @@ var UserController = {
     });
   },
 
+  addMatches: function(userId, filteredMemberIds, currentResults, callback){
+    Match.getMatchesForUser(userId, filteredMemberIds, function(err, matches) {
+      if (err) {
+        callback(err, null);
+      }
+
+      //add match info
+      result = _.map(currentResults, function(otherMember){
+        var otherUserId = otherMember._id;
+        match = _.find(matches, function(m) { return (m.userId1 == otherUserId) || (m.userId2 == otherUserId) });
+
+
+        var matchInfo = {};
+        if(!_.isUndefined(match)) {
+          matchInfo.matchId = match._id;
+          if (match.userId1 == userId){
+            matchInfo.yourOffers = match.user1Offers;
+            matchInfo.otherOffers = match.user2Offers;
+          } else {
+            matchInfo.yourOffers = match.user2Offers;
+            matchInfo.otherOffers = match.user1Offers;
+          }
+        }
+
+        otherMember.matches = matchInfo;
+        return otherMember;
+      });
+
+      callback(null, result);
+    });
+  },
+
   getCircleInfo: function(req, res){
     var userId = req.params.id;
     User.getById(userId, function(err, member) {
@@ -236,47 +269,52 @@ var UserController = {
           var filteredMembers = _.filter(members, function(user){return user._id != userId;});
           var filteredMemberIds = _.map(filteredMembers, function(user){return user._id;});
 
-          Match.getMatchesForUser(userId, filteredMemberIds, function(err, matches) {
-            if (err) {
-              res.status(404);
-              res.json({
-                "message": err.message
-              });
-              return;
-            }
+          Chat.getChatsForUser(userId, filteredMemberIds, function(err, chats) {
+              if (err) {
+                res.status(404);
+                res.json({
+                  "message": err.message
+                });
+                return;
+              }
 
-            //add match info
-            memberInfo = _.map(filteredMembers, function(otherMember){
-              var otherUserId = otherMember._id;
-              match = _.find(matches, function(m) { return (m.userId1 == otherUserId) || (m.userId2 == otherUserId) });
-
-
-              var matchInfo = {};
-              if(!_.isUndefined(match)) {
-                matchInfo.matchId = match._id;
-                if (match.userId1 == userId){
-                  matchInfo.yourOffers = match.user1Offers;
-                  matchInfo.otherOffers = match.user2Offers;
-                } else {
-                  matchInfo.yourOffers = match.user2Offers;
-                  matchInfo.otherOffers = match.user1Offers;
+              //add chatNumber 
+              chatResult = _.map(filteredMembers, function(otherMember){
+                var otherUserId = otherMember._id;
+                chat = _.find(chats, function(c) { return (c.user1 == otherUserId) || (c.user2 == otherUserId) });
+                otherUserObject = otherMember.toObject();
+                otherUserObject.lastMsgNum = 0;
+                if (chat) {
+                  if (chat.user1 == userId) {
+                    otherUserObject.lastMsgNum = chat.user1LastMsgNumber;
+                  } else {
+                    otherUserObject.lastMsgNum = chat.user2LastMsgNumber;
+                  }
                 }
-              }
 
-              otherUserObject = otherMember.toObject();
-              otherUserObject.matches = matchInfo;
-              console.log(otherUserObject);
-              return otherUserObject;
-            });
+                return otherUserObject;
+              });
 
-            res.status(200);
-            res.json({
-              "message": "success",
-              "data": {
-                "circleId": member.currentCircle,
-                "members": memberInfo
-              }
-            });
+              UserController.addMatches(userId, filteredMemberIds, chatResult, function(err, result) {
+                if (err) {
+                  res.status(404);
+                  res.json({
+                    "message": err.message
+                  });
+                  return;
+                } 
+
+                console.log("HERE");
+              console.log(result);
+                res.status(200);
+                res.json({
+                  "message": "success",
+                  "data": {
+                    "circleId": member.currentCircle,
+                    "members": result
+                  }
+                });
+              });
           });
         });
 

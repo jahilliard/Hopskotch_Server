@@ -1,4 +1,5 @@
 var Chat = require("../models/Chat.js");
+var User = require("../models/User.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
 var Socket = require('../ws/ws.js');
@@ -37,17 +38,34 @@ var ChatController = {
   //test function
   fillInLastMsgNumber: function(userId, chatResults, i, callback){
     if (i == chatResults.length){
-      callback()
+      callback(null);
       return;
     } else {
-      Chat.getById(chatResults[i]._id, function(err, chat){
-        if (userId == chat.user1){
-          chatResults[i].lastMsgNum = chat.user1LastMsgNumber;
-        } else {
-          chatResults[i].lastMsgNum = chat.user2LastMsgNumber;
-        }
-        ChatController.fillInLastMsgNumber(userId, chatResults, i+1, callback);
-      })
+      Chat.getById(chatResults[i].chatId, function(err, chat){
+        if (err) {
+          callback(err);
+          return;
+        } 
+
+        User.getById(chatResults[i].chatee, function(err, user){
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          if (userId == chat.user1){
+            chatResults[i].lastMsgNum = chat.user1LastMsgNumber;
+          } else {
+            chatResults[i].lastMsgNum = chat.user2LastMsgNumber;
+          }
+
+          console.log("HEREEE");
+          console.log(chatResults[i]);
+          chatResults[i]["chatee"] = user;
+          ChatController.fillInLastMsgNumber(userId, chatResults, i+1, callback);
+        });
+
+      });
     }
   },
 
@@ -58,14 +76,18 @@ var ChatController = {
         res.status(404);
         res.json({"errcode": err.code, "message": err.errmsg});
       } else {
-        res.status(200);
-
+        console.log("RESULTS");
         console.log(chatResults);
-
-
         //START TEST
         var self = this;
-        ChatController.fillInLastMsgNumber(req.body.id, chatResults, 0, function(){
+        ChatController.fillInLastMsgNumber(req.body.id, chatResults, 0, function(err){
+          if (err) {
+            res.status(404);
+            res.json({"errcode": err.code, "message": err.errmsg});
+            return;
+          }
+
+          console.log(chatResults);
           res.json({"message": "success", "chats": chatResults});
         });
         //END TEST

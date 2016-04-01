@@ -167,7 +167,7 @@ var RoomController = {
         });
         return;
       }
-
+      console.log(locationToAdd.id);
       var roomId = locationToAdd.id
 
       Room.getByLocationId(roomId, function(err, targetRoom) {

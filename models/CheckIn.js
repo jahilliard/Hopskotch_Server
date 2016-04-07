@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+/*var mongoose = require('mongoose');
 var ChatSchema = require('../schemas/CheckInSchema.js');
 var _ = require('lodash');
 
@@ -12,4 +12,4 @@ CheckInSchema.methods.saveCheckIn = function(callback){
   });
 },
  
-module.exports = mongoose.model('CheckIn', CheckInSchema);
+module.exports = mongoose.model('CheckIn', CheckInSchema);*/

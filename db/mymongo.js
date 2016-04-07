@@ -93,8 +93,13 @@ var mongoose = require('mongoose');
 };*/
 
 var MongoDB = {
+  connection : null,
+  mongoose: null,
+
   initializeMongoose: function(callback){
+    this.mongoose = mongoose;
     var db = mongoose.connection;
+    this.connection = db;
 
     db.on('error', console.error.bind(console, 'connection error:'));
 

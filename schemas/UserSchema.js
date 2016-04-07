@@ -122,4 +122,17 @@ UserSchema.statics.getByEmail = function(email, callback){
   });
 }
 
+UserSchema.statics.getUsersByIds = function(userIds, callback){
+  var query = {'_id': {$in: userIds}};
+
+  this.find(query, function(err, results){
+    if (err) {
+      console.log(err);
+      callback(err, null);
+    } else {
+      callback(null, results);
+    }
+  });
+}
+
 module.exports = UserSchema;

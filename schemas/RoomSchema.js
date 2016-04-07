@@ -4,7 +4,6 @@ var bcrypt = require('bcrypt-nodejs');
 var config = require('../config/config.js');
 var User = require('../models/User.js');
 var Location = require('../models/Location.js');
-var User = require('../models/User.js');
 
 //TODO: can add check later that objectIds actually refer to exisitng objects
 //using asynchrnous validators

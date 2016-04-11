@@ -48,6 +48,7 @@ var UserController = {
     }
 
     var newUser = new User(req.body.registrationInfo);
+    newUser.picture = ["null", "null", "null"];
     newUser.saveUser(function(err, savedUser){
       if (err) {
         console.log("HERE");

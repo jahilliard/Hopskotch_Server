@@ -2,7 +2,9 @@
 var express = require('express'),
   fs = require('fs'),
   morgan = require('morgan'),
-  bodyParser = require('body-parser');
+  bodyParser = require('body-parser'),
+  busboyBodyParser = require('busboy-body-parser');
+
 var config = require('./config/config.js');
 
 var hskey = fs.readFileSync('hacksparrow-key.pem');
@@ -26,6 +28,7 @@ function initialize(){
   app.use(morgan('dev'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(busboyBodyParser());
   app.use(passport.initialize());
 
   app.all('/*', function(req, res, next) {

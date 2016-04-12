@@ -8,6 +8,8 @@ var LocationController = require("../controllers/LocationController.js");
 var UserController = require("../controllers/UserController.js");
 var ChatController = require("../controllers/ChatController.js");
 var UserTrackerController = require("../controllers/UserTrackerController.js");
+var FeedEntryController = require("../controllers/FeedEntryController.js");
+var busboyBodyParser = require('busboy-body-parser');
 
 /*
  * Routes that can be accessed by any one
@@ -60,8 +62,16 @@ router.get('/api/v1/chats/:id/messages/:chatee', ChatController.getUnreadChatMes
 router.get('/api/v1/chats/search', ChatController.getLatestChats);
 router.post('/api/v1/chats/:id/messages/:chatee/isRead', ChatController.setRead);
 
-router.get('/api/v1/usertracker', UserTrackerController.getAll);
+/*router.get('/api/v1/usertracker', UserTrackerController.getAll);
 router.get('/api/v1/usertracker/search/:userId', UserTrackerController.getByUserId);
-router.post('/usertracker/save', UserTrackerController.saveLocation);
+router.post('/usertracker/save', UserTrackerController.saveLocation);*/
+
+
+router.post('/api/v1/feed/', FeedEntryController.createFeedEntry);
+router.get('/api/v1/feed/:feedEntryId/content', FeedEntryController.downloadDataEntry);
+router.get('/api/v1/feed/:circleId/numUpdates', FeedEntryController.getNumUpdates);
+router.get('/api/v1/feed/:circleId/updates', FeedEntryController.getFeedEntryUpdates);
+router.get('/api/v1/feed/:circleId/latest', FeedEntryController.getNewestEntries);
+router.get('/api/v1/feed/:circleId/older', FeedEntryController.getOlderEntries);
 
 module.exports = router;

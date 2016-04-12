@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var ChatSchema = require('../schemas/CheckInSchema.js');
+var CheckInSchema = require('../schemas/CheckInSchema.js');
 var _ = require('lodash');
 
 CheckInSchema.methods.saveCheckIn = function(callback){

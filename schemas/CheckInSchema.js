@@ -8,7 +8,7 @@ function isValidMongoId(id){
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-var ChatSchema = new Schema({
+var CheckInSchema = new Schema({
   userId: {
     type: String,/*mongoose.Schema.Types.ObjectId,*/
     ref: 'User',
@@ -29,24 +29,23 @@ var ChatSchema = new Schema({
 
   locationId: {
     type: String,/*mongoose.Schema.Types.ObjectId,*/
-    ref: 'Room',
+    ref: 'Location',
     required: true,
     validate: [isValidMongoId, 'Not a valid ObjectId']
   },
 
-})
+});
 
 CheckInSchema.plugin(mongoosePaginate);
 
 CheckInSchema.statics.getByPage = function(page, callback){
-  this.paginate({}, {limit: 25, page: page, sort: {date: -1}, function(err, feedObjects){
+  this.paginate({}, {limit: 25, page: page, sort: {date: -1}}, function(err, feedObjects){
     if (err) {
       return callback(err, null);
     } else {
       return callback(null, feedObjects);
     }
-  })
-
+  });
 }
 
 

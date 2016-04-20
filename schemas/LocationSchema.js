@@ -8,12 +8,23 @@ var MenuItem = new Schema({
   price: Number
 })
 
+function isValidMongoId(id){
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
 var LocationSchema = new Schema({
   properties: {
     name: String,
     mainImg: String,
     address: String
   },
+
+  roomId: {
+    type: String,/*mongoose.Schema.Types.ObjectId,*/
+    ref: 'Room',
+    required: true,
+    validate: [isValidMongoId, 'Not a valid ObjectId']
+  }, 
 
   geometry: {
     coordinates: { type: [Number], index: '2dsphere'}

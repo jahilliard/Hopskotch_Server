@@ -1,6 +1,5 @@
 var Room = require("../models/Room.js");
 var User = require("../models/User.js");
-var CheckIn = require("../models/CheckIn.js");
 var Location = require("../models/Location.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
@@ -156,14 +155,13 @@ var RoomController = {
 
     var newMemberId = req.params.userId;
     var locationCoor = req.body.coordinate;
-    var radius = 100
-    var checkIn = new CheckIn();
+    var radius = 100;
 
     Location.getInRadius(locationCoor, radius, function(err, foundLocations){
       var locationToAdd = foundLocations[0]
       
       if (!locationToAdd){
-        res.status(404);
+        res.status(304);
         res.json({
           "message": "Room not in radius"
         });
@@ -214,6 +212,7 @@ var RoomController = {
             res.status(200);
             res.json({
               "message": "success",
+              "roomId" : roomId,
               "members": filteredMembers
             });
 

@@ -2,7 +2,6 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema;
 var bcrypt = require('bcrypt-nodejs');
 var config = require('../config/config.js');
-//var mongoosePaginate = require('mongoose-paginate');
 
 function isValidMongoId(id){
   return mongoose.Types.ObjectId.isValid(id);
@@ -35,13 +34,6 @@ var CheckInSchema = new Schema({
   },
 
 });
-
-CheckInSchema.plugin(mongoosePaginate);
-
-CheckInSchema.statics.getByPage = function(page, callback){
-  this.paginate({}, {limit: 25, page: page, sort: {date: -1}}, function(err, feedObjects){
-  }
-}
 
 
 module.exports = CheckInSchema;

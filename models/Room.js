@@ -47,9 +47,9 @@ RoomSchema.methods.addMemberToRoom = function(userId, callback){
       callback(new Error("User does not exist"), null);
     }
 
-    if (newMember.currentCircle != "" && newMember.currentCircle != room._id) {
+    /*if (newMember.currentCircle != "" && newMember.currentCircle != room._id) {
       callback(new Error("Cannot join new circle without leaving old one"), null);
-    }
+    }*/
 
     newMember.currentCircle = room._id;
     newMember.saveUser(function(err, savedUser){

@@ -157,7 +157,7 @@ var RoomController = {
     var newMemberId = req.params.userId;
     var locationCoor = req.body.coordinate;
     var radius = 100
-    var checkIn = new CheckIn();
+    //var checkIn = new CheckIn();
 
     Location.getInRadius(locationCoor, radius, function(err, foundLocations){
       var locationToAdd = foundLocations[0]
@@ -165,7 +165,7 @@ var RoomController = {
       if (!locationToAdd){
         res.status(404);
         res.json({
-          "message": "Room not in radius"
+          "message": "Does not exist room in radius"
         });
         return;
       }
@@ -213,8 +213,7 @@ var RoomController = {
             //notify new member of successful addition to circle
             res.status(200);
             res.json({
-              "message": "success",
-              "members": filteredMembers
+              "message": "success"
             });
 
             //notify all people in circle of new member
@@ -269,8 +268,7 @@ var RoomController = {
 
           res.status(200);
           res.json({
-            "message": "success",
-            "members": filteredMembers
+            "message": "success"
           });
 
           //notify all people in circle of new member

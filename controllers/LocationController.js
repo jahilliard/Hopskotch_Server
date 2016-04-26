@@ -215,29 +215,6 @@ var LocationController = {
     });
   },
 
-  //radius in meters
-  getInRadius: function(req, res){
-    if (helper.verifyRequest(req, res, ['location', 'radius'])){
-      return;
-    }
-
-    Location.getInRadius(req.query.location, req.query.radius, 
-      function(err, foundLocations){
-        if (err){
-          res.status(404);
-            res.json({
-              "message": err.message
-            });
-          } else {
-            res.status(200);
-            res.json({
-              "message": "success",
-              "locations": foundLocations
-            })
-          }
-      })
-  },
-
   deleteMenuItems: function(req, res) {
     if (helper.verifyBody(req, res, ['oldMenuItems'])){
       return;

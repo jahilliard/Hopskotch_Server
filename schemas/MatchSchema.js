@@ -63,7 +63,7 @@ MatchSchema.schema.statics.getById = function(id, callback){
     if (foundMatch){
       return callback(null, foundMatch);
     } else {
-      return callback(null, false);
+      return callback(new Error("No match with this id"), false);
     }
   });
 }

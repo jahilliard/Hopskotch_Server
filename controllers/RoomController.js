@@ -1,5 +1,7 @@
 var Room = require("../models/Room.js");
 var User = require("../models/User.js");
+var UserController = require("../controllers/UserController.js");
+var Chat = require("../models/Chat.js");
 var Location = require("../models/Location.js");
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
@@ -8,6 +10,105 @@ var ws = require("../ws/ws.js");
 //used to specify what fields of the model a client cannot update
 function validateFields(fields, req, res){
   return 0;
+}
+
+function getProps(fields){
+  return _.pick(fields, ['name', 'mainImg', 'menu', 'radius']);
+}
+
+function getGeom(fields){
+  return _.pick(fields, ['coordinates']);
+}
+
+function addMemberToRoom(room, newMemberId, callback) {
+  User.getById(newMemberId, function(err, newMember) {
+    if (err) {
+      return callback(err, null);
+    } 
+
+    if (newMember.currentCircle != "") {
+      var oldRoomId = newMember.currentCircle;
+      Room.getById(oldRoomId, function(err, targetRoom) {
+        if (err){
+          console.log(err);
+        } else {
+          notifyRoomMemberLeft(oldRoomId, newMember);
+        }
+      });
+    }
+
+    newMember.currentCircle = room._id;
+
+    newMember.saveUser(function(err, savedUser){
+      if (err) {
+        return callback(err, null);
+      } else {
+        Room.getAllMembers(room._id, function(err, members) {
+          if (err) {
+            return callback(err, null);
+          }
+
+          //don't include yourself 
+          var filteredMembers = _.filter(members, function(user){return user._id != newMemberId;});
+          console.log(filteredMembers);
+          var filteredMemberIds = _.map(filteredMembers, function(user){return user._id;});
+
+          Chat.getChatsForUser(savedUser._id, filteredMemberIds, function(err, chats) {
+              if (err) {
+                return callback(err, null);
+              }
+
+              //add chatNumber 
+              chatResult = _.map(filteredMembers, function(otherMember){
+                var otherUserId = otherMember._id;
+                chat = _.find(chats, function(c) { return (c.user1 == otherUserId) || (c.user2 == otherUserId) });
+                otherUserObject = otherMember.toObject();
+                otherUserObject.lastMsgNum = 0;
+                if (chat) {
+                  if (chat.user1 == newMemberId) {
+                    otherUserObject.lastMsgNum = chat.user1LastMsgNumber;
+                  } else {
+                    otherUserObject.lastMsgNum = chat.user2LastMsgNumber;
+                  }
+                }
+
+                return otherUserObject;
+              });
+
+              UserController.addMatches(savedUser._id, filteredMemberIds, chatResult, function(err, result) {
+                if (err) {
+                  return callback(err, null);
+                } 
+
+                filteredMemberIds = _.map(filteredMembers, function(member){return member._id.toString()});
+                ws.notifyUsersNewCircleMember(filteredMemberIds, newMember);
+                var data = {"circle": room, "members": result};
+                return callback(null, data);
+              });
+          });
+        });
+      }
+    });
+  });
+}
+
+function notifyRoomMemberLeft(roomId, oldMember) {
+  Room.getAllMembers(roomId, function(err, members) {
+    if (err) {
+      res.status(404);
+      res.json({
+        "message": "Could not retrieve circle members"
+      });
+      return;
+    }
+
+    //remove the new member from the list
+    var filteredMembers = _.filter(members, function(user){return user._id != oldMember._id});
+    console.log("NOTIFYING OF LEAVE");
+    console.log(filteredMembers);
+    //notify all people in circle of member leaving
+    ws.notifyUsersCircleMemberLeave(filteredMembers, oldMember);
+  });
 }
 
 var RoomController = {
@@ -52,9 +153,14 @@ var RoomController = {
     if (helper.verifyBody(req, res, ['registrationInfo'])) {
       return;
     }
-    var newRoom = new Room(req.body.registrationInfo);
+
+    var props = getProps(req.body.registrationInfo);
+    var geom = getGeom(req.body.registrationInfo);
+
+    var newRoom = new Room({properties: props, geometry: geom});
     newRoom.saveRoom(function(err, newRoom){
       if (err){
+        console.log(err);
         res.status(404);
         res.json({
           "message": err.message
@@ -65,7 +171,7 @@ var RoomController = {
           "newId": newRoom.id,
         });
       }
-    });
+    }); 
   },
  
   update: function(req, res) {
@@ -148,6 +254,96 @@ var RoomController = {
     });
   },
 
+  //radius in meters
+  /*findAllInRadius = function(location, radius, callback){
+
+
+    this.find(
+      { "geometry.coordinates": {
+          $nearSphere: {
+            $geometry: {
+              type : "Point",
+              coordinates : location
+            },
+            $minDistance: 0,
+            $maxDistance: radius + "this."
+          }
+        }
+      }, function(err, foundRooms){
+        if (err){
+          callback(err, null);
+        } else{
+          callback(null, foundRooms);
+        }
+      })
+  },*/
+
+  //radius in meters
+  getInRadius: function(req, res){
+    if (helper.verifyRequest(req, res, ['location', 'radius'])){
+      return;
+    }
+
+    var radius = parseFloat(req.query.radius);
+    var location = req.query.location
+    location = location.map(function(coord) {return parseFloat(coord)});
+
+
+    var referencePoint= 
+      {
+          "type" : "Point",
+          "coordinates" : location
+      }
+
+    Room.aggregate([
+        { "$geoNear": {
+           "near": referencePoint,
+           "distanceField": "distance",
+           "spherical": true
+       }},
+
+       { "$project": {
+           "_id": 1,
+           "properties.radius": 1,
+           "properties.name": 1,
+           "properties.address": 1,
+           "geometry.coordinates": 1,
+           "within": { "$lt": [ "$distance", { "$add": [ "$properties.radius", radius ] } ] }
+       }},
+
+       { "$match": { "within": true } }
+    ], function(err, circles) {
+        if (err) {
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+        } else {
+          res.status(200);
+          res.json({
+            "message": "success",
+            "circles": circles
+          });
+        }
+    });
+
+    /*RoomController.findAllInRadius(req.query.location, req.query.radius, 
+      function(err, foundCircles){
+        if (err){
+          res.status(404);
+            res.json({
+              "message": err.message
+            });
+          } else {
+            res.status(200);
+            res.json({
+              "message": "success",
+              "circles": foundCircles
+            })
+          }
+      })*/
+  },
+
   addMemberToRoomByLocation: function(req, res) {
     if(helper.verifyBody(req, res, ['coordinate'])){
       return;
@@ -155,22 +351,74 @@ var RoomController = {
 
     var newMemberId = req.params.userId;
     var locationCoor = req.body.coordinate;
-    var radius = 100;
+    
+    var referencePoint= 
+      {
+          "type" : "Point",
+          "coordinates" : locationCoor
+      }
 
-    Location.getInRadius(locationCoor, radius, function(err, foundLocations){
-      var locationToAdd = foundLocations[0]
-      
-      if (!locationToAdd){
-        res.status(304);
+    Room.aggregate([
+        { "$geoNear": {
+           "near": referencePoint,
+           "distanceField": "distance",
+           "spherical": true
+       }},
+
+       { "$project": {
+           "_id": 1,
+           "properties.radius": 1,
+           "properties.name": 1,
+           "properties.address": 1,
+           "geometry.coordinates": 1,
+           "within": { "$lt": [ "$distance", "$properties.radius"] } 
+       }},
+
+       { "$match": { "within": true } },
+
+       { "$sort": {distance : 1} }
+    ], function(err, foundRoom){
+      if (err) {
+        res.status(404);
         res.json({
-          "message": "Room not in radius"
+          "message": err.message
         });
         return;
       }
       
-      var roomId = locationToAdd.id
+      if (foundRoom.length == 0){
+        console.log("NOTHINGGG");
+        User.getById(newMemberId, function(err, newMember) {
+          if (err) {
+            res.status(404);
+            res.json({
+              "message": err.message
+            });
+            return;
+          } 
 
-      Room.getByLocationId(roomId, function(err, targetRoom) {
+          if (newMember.currentCircle != "") {
+            var oldRoomId = newMember.currentCircle;
+            notifyRoomMemberLeft(oldRoomId, newMember);
+            newMember.currentCircle = "";
+            newMember.saveUser(function(err, savedUser){
+              if (err) {
+                console.log(err);
+              }
+            });
+          }
+
+          res.status(200);
+          res.json({
+            "message": "Not in the radius of any rooms"
+          });
+        });
+        return;
+      }
+
+      var roomId = foundRoom[0];
+
+      Room.getById(roomId, function(err, targetRoom) {
         if (err){
           res.status(404);
           res.json({
@@ -187,44 +435,27 @@ var RoomController = {
           return;
         }
 
-        targetRoom.addMemberToRoom(newMemberId, function(err, newMember){
+        addMemberToRoom(targetRoom, newMemberId, function(err, data) {
           if (err) {
             res.status(404);
             res.json({
               "message": err.message
             });
             return;
-          }
-
-          Room.getAllMembers(roomId, function(err, members) {
-            if (err) {
-              res.status(404);
-              res.json({
-                "message": "Could not retrieve circle members"
-              });
-              return;
-            }
-
-            //remove the new member from the list
-            var filteredMembers = _.filter(members, function(user){return user._id != newMemberId});
-
-            //notify new member of successful addition to circle
+          } else {
+            console.log("SUCCESS");
             res.status(200);
             res.json({
               "message": "success",
-              "roomId" : roomId,
-              "members": filteredMembers
+              "data": data
             });
-
-            //notify all people in circle of new member
-            ws.notifyUsersNewCircleMember(filteredMembers, newMember);
-          });
+          }
         });
       });
     });
   }, 
 
-  addMemberToRoom: function(req, res) {
+  addMemberToRoomWithId: function(req, res) {
     var newMemberId = req.params.userId;
     var roomId = req.params.id;
 
@@ -245,36 +476,20 @@ var RoomController = {
         return;
       }
 
-      targetRoom.addMemberToRoom(newMemberId, function(err, newMember){
+      addMemberToRoom(targetRoom, newMemberId, function(err, data) {
         if (err) {
           res.status(404);
           res.json({
             "message": err.message
           });
           return;
-        }
-
-        Room.getAllMembers(roomId, function(err, members) {
-          if (err) {
-            res.status(404);
-            res.json({
-              "message": "Could not retrieve circle members"
-            });
-            return;
-          }
-
-          //remove the new member from the list
-          var filteredMembers = _.filter(members, function(user){return user._id != newMemberId});
-
+        } else {
           res.status(200);
           res.json({
             "message": "success",
-            "members": filteredMembers
+            "data": data
           });
-
-          //notify all people in circle of new member
-          ws.notifyUsersNewCircleMember(filteredMembers, newMember);
-        });
+        }
       });
     });
   },
@@ -309,27 +524,7 @@ var RoomController = {
           return;
         }
 
-        Room.getAllMembers(roomId, function(err, members) {
-          if (err) {
-            res.status(404);
-            res.json({
-              "message": "Could not retrieve circle members"
-            });
-            return;
-          }
-
-          //remove the new member from the list
-          var filteredMembers = _.filter(members, function(user){return user._id != oldMemberId});
-
-          //notify new member of successful removal from circle
-          res.status(200);
-          res.json({
-            "message": "success"
-          });
-
-          //notify all people in circle of new member
-          ws.notifyUsersCircleMemberLeave(filteredMembers, oldMember);
-        });
+        notifyRoomMemberLeft(roomId, oldMember);
       });
     });
   }

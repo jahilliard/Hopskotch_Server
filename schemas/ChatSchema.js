@@ -57,7 +57,7 @@ ChatSchema.statics.getById = function(id, callback){
     if (foundChat){
       return callback(null, foundChat);
     } else {
-      return callback(null, false);
+      return callback(new Error("No chat with this id"), null);
     }
   });
 }

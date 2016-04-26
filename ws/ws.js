@@ -3,6 +3,7 @@ var Chat = require("../models/Chat.js");
 var Message = require("../models/Message.js");
 var socketIdToUserId = {};
 var userIdToSocket = {};
+var _ = require('lodash');
 
 //initialize websocket components
 function initialize(server){
@@ -180,11 +181,35 @@ var webSocket = {
 		otherUserSocket.emit("newOffers", {from: myId, matchId: matchId, newOffers: newOffers});
 	},
 
-	notifyUsersNewCircleMember: function(users, newMember) {
-		users.map(function(user){
-			if (user._id in userIdToSocket) {
-				userIdToSocket[user._id].emit("newCircleMember", {"newMember": newMember});
-			}
+	notifyUsersNewCircleMember: function(oldUserIds, newMember) {
+		//add lastMsgNumber to object
+		var newMemberId = newMember._id.toString();
+
+    Chat.getChatsForUser(newMemberId, oldUserIds, function(err, chats) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+       //add chatNumber 
+      addedChatResult = _.map(oldUserIds, function(oldMemberId){
+        chat = _.find(chats, function(c) { return (c.user1 == oldMemberId) || (c.user2 == oldMemberId) });
+        newMember = newMember.toObject();
+        newMember.lastMsgNum = 0;
+        if (chat) {
+          if (chat.user1 == oldMemberId) {
+            newMember.lastMsgNum = chat.user1LastMsgNumber;
+          } else {
+            newMember.lastMsgNum = chat.user2LastMsgNumber;
+          }
+        }
+
+        if (oldMemberId in userIdToSocket) {
+					userIdToSocket[oldMemberId].emit("newCircleMember", {"newMember": newMember});
+				}
+
+        return newMember;
+      });
 		});
 	},
 
@@ -197,8 +222,6 @@ var webSocket = {
 		})
 	},
 
-
 }
-
 
 module.exports = webSocket;

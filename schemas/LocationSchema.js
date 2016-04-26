@@ -19,13 +19,6 @@ var LocationSchema = new Schema({
     address: String
   },
 
-  roomId: {
-    type: String,/*mongoose.Schema.Types.ObjectId,*/
-    ref: 'Room',
-    required: true,
-    validate: [isValidMongoId, 'Not a valid ObjectId']
-  }, 
-
   geometry: {
     coordinates: { type: [Number], index: '2dsphere'}
   }
@@ -51,7 +44,7 @@ LocationSchema.statics.getById = function(id, callback){
     if (foundLocation){
       return callback(null, foundLocation);
     } else {
-      return callback(null, false);
+      return callback(new Error("No location with this id"), null);
     }
   });
 }
@@ -68,28 +61,6 @@ LocationSchema.statics.getByName = function(name, callback){
       return callback(null, false);
     }
   });
-}
-
-//radius in meters
-LocationSchema.statics.getInRadius = function(location, radius, callback){
-  this.find(
-    { "geometry.coordinates": {
-        $nearSphere: {
-          $geometry: {
-            type : "Point",
-            coordinates : location
-          },
-          $minDistance: 0,
-          $maxDistance: parseFloat(radius)
-        }
-      }
-    }, function(err, foundLocations){
-      if (err){
-        callback(err, null);
-      } else{
-        callback(null, foundLocations);
-      }
-    })
 }
 
 module.exports = LocationSchema;

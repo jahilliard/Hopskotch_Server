@@ -1,4 +1,5 @@
 var Match = require("../models/Match.js");
+var Room = require("../models/Room.js")
 var helper = require("../helpers/helper.js");
 var _ = require('lodash');
 var Socket = require('../ws/ws.js');
@@ -41,6 +42,7 @@ var MatchController = {
     if (helper.verifyBody(req, res, ["fields.offers"])) {
       return;
     }
+
     var fields = req.body.fields;
     var criteria = {};
     var isNew = false;
@@ -53,6 +55,16 @@ var MatchController = {
       res.json({
         "message": "Not Authorized to modify this user"
       });
+
+      return;
+    }
+
+    if (!Room.checkInSameCircle(myId, otherUser)) {
+      res.status(404);
+      res.json({
+        "message": "Not in same circle, cannot update offers"
+      });
+      return;
     }
 
     if (otherUser < myId){

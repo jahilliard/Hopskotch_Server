@@ -90,7 +90,7 @@ UserSchema.statics.getById = function(id, callback){
     if (foundUser){
       return callback(null, foundUser);
     } else {
-      return callback(null, false);
+      return callback(new Error("No user with this id"), null);
     }
   });
 }

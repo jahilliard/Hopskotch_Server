@@ -12,12 +12,17 @@ function isValidMongoId(id){
 }
 
 var RoomSchema = new Schema({
-  locationId: {
-    type: String, /*mongoose.Schema.Types.ObjectId,*/
-    ref: 'Location',
-    unique: true,
-    required: true,
-    validate: [isValidMongoId, 'Not a valid ObjectId']
+  properties: {
+    name: String,
+    mainImg: String,
+    address: String,
+    radius : {
+      type: Number
+    }
+  },
+
+  geometry: {
+    coordinates: { type: [Number], index: '2dsphere'}
   }
 });
 
@@ -62,7 +67,21 @@ RoomSchema.statics.getByLocationId = function(id, callback){
     if (foundRoom){
       return callback(null, foundRoom);
     } else {
-      return callback(null, false);
+      return callback(new Error("No room with this id"), null);
+    }
+  });
+}
+
+RoomSchema.statics.checkInSameCircle = function(user1, user2){
+  User.find({"_id" : { $in : [user1, user2] } }, function (err, results) {
+    if (err || results.length < 2) {
+      return false;
+    } else {
+      if (results[0].currentCircle != results[1].currentCircle) {
+        return false;
+      } else {
+        return true;
+      }
     }
   });
 }

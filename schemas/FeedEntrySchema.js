@@ -74,7 +74,7 @@ FeedEntrySchema.schema.statics.getById = function(id, callback){
     if (foundFeedEntry){
       return callback(null, foundFeedEntry);
     } else {
-      return callback(null, false);
+      return callback(new Error("No feedEntry with this id"), false);
     }
   });
 }

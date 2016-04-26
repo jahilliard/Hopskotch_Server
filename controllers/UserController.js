@@ -241,7 +241,7 @@ var UserController = {
         res.json({
           "message": "success",
           "data": {
-            "circleId": "",
+            "circle": "",
             "members": []
           }
         })
@@ -305,13 +305,12 @@ var UserController = {
                   return;
                 } 
 
-                console.log("HERE");
               console.log(result);
                 res.status(200);
                 res.json({
                   "message": "success",
                   "data": {
-                    "circleId": member.currentCircle,
+                    "circle": targetRoom,
                     "members": result
                   }
                 });

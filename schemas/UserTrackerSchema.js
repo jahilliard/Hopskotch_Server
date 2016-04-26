@@ -45,7 +45,7 @@ UserTrackerSchema.statics.getById = function(id, callback){
     if (foundUser){
       return callback(null, foundUserLocation);
     } else {
-      return callback(null, false);
+      return callback(new Error("No userTracker with this id"), null);
     }
   });
 }

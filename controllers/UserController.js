@@ -305,7 +305,6 @@ var UserController = {
                   return;
                 } 
 
-              console.log(result);
                 res.status(200);
                 res.json({
                   "message": "success",

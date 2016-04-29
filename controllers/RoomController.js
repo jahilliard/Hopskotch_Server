@@ -351,7 +351,7 @@ var RoomController = {
 
     var newMemberId = req.params.userId;
     var locationCoor = req.body.coordinate;
-    
+
     var referencePoint= 
       {
           "type" : "Point",

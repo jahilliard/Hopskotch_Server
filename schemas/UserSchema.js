@@ -16,6 +16,12 @@ var UserSchema = new Schema({
 	firstName: String,
 	lastName : String,
   nickname: String,
+
+  status: {
+    type: String,
+    default: ""
+  },
+
   picture: Array,
 
   role: {

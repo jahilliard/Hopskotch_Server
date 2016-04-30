@@ -22,7 +22,10 @@ var UserSchema = new Schema({
     default: ""
   },
 
-  picture: Array,
+  picture: {
+    type: Array,
+    default: [null, null, null]
+  }
 
   role: {
 		type: String,

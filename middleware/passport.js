@@ -51,7 +51,6 @@ passport.use(new FacebookTokenStrategy({
           var attributes = getFbAttributesFromProfile(profile);
           //add additional attributes
           attributes.nickname = "";
-          attributes.picture = [];
           var newUser = new User(attributes);
           newUser.saveUser(function(err, newUser){
             if (err){

@@ -25,7 +25,7 @@ var UserSchema = new Schema({
   picture: {
     type: Array,
     default: [null, null, null]
-  }
+  },
 
   role: {
 		type: String,

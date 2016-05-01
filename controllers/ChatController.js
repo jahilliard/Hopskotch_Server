@@ -87,7 +87,12 @@ var ChatController = {
             return;
           }
 
-          console.log(chatResults);
+          /*var filteredMemberIds  = _.map(chatResults, function(chat){return chat.chatee._id;});
+          UserController.addMatches(req.body.id, filteredMemberIds, chatResults, function(err, result) {
+            console.log(results);
+            res.json({"message": "success", "chats": result});
+          }*/
+          
           res.json({"message": "success", "chats": chatResults});
         });
         //END TEST

@@ -59,66 +59,85 @@ var MatchController = {
       return;
     }
 
-    if (!Room.checkInSameCircle(myId, otherUser)) {
-      res.status(404);
-      res.json({
-        "message": "Not in same circle, cannot update offers"
-      });
-      return;
-    }
-
-    if (otherUser < myId){
-      criteria.userId1 = otherUser;
-      criteria.userId2 = myId;
-    } else {
-      criteria.userId1 = myId;
-      criteria.userId2 = otherUser;
-    }
-
-    Match.getMatchByCriteria(criteria, function(err, foundMatchArray) {
-      if (err){
+    Room.checkInSameCircle(myId, otherUser, function(isSame) {
+      if (!isSame) {
         res.status(404);
         res.json({
-          "message": err.message
+          "message": "Not in same circle, cannot update offers"
         });
         return;
-      } 
-
-      var targetMatch = null;
-      if (foundMatchArray.length == 0){
-        //create new match object
-        var targetMatch = new Match();
-        targetMatch.userId1 = criteria.userId1;
-        targetMatch.userId2 = criteria.userId2;
-        isNew = true;
-      } 
-
-      /*else if (!("offers" in info) || info.offers.length == 0) {
-        res.status(200);
-        res.json({
-          "message": "success",
-          "matchId": targetMatch.id
-        });
-
-        return;
-      }*/ 
-
-      else {
-        targetMatch = foundMatchArray[0];
       }
 
+      if (otherUser < myId){
+        criteria.userId1 = otherUser;
+        criteria.userId2 = myId;
+      } else {
+        criteria.userId1 = myId;
+        criteria.userId2 = otherUser;
+      }
 
-      if ("offers" in fields && fields.offers.length > 0) {
-        MatchController.updateOffers(fields.offers, req.body.id, targetMatch, function(newOffers, newMatch, otherUser){
-          newMatch.saveMatch(function(err, savedMatch){
+      Match.getMatchByCriteria(criteria, function(err, foundMatchArray) {
+        if (err){
+          res.status(404);
+          res.json({
+            "message": err.message
+          });
+          return;
+        } 
+
+        var targetMatch = null;
+        if (foundMatchArray.length == 0){
+          //create new match object
+          var targetMatch = new Match();
+          targetMatch.userId1 = criteria.userId1;
+          targetMatch.userId2 = criteria.userId2;
+          isNew = true;
+        } 
+
+        /*else if (!("offers" in info) || info.offers.length == 0) {
+          res.status(200);
+          res.json({
+            "message": "success",
+            "matchId": targetMatch.id
+          });
+
+          return;
+        }*/ 
+
+        else {
+          targetMatch = foundMatchArray[0];
+        }
+
+
+        if ("offers" in fields && fields.offers.length > 0) {
+          MatchController.updateOffers(fields.offers, req.body.id, targetMatch, function(newOffers, newMatch, otherUser){
+            newMatch.saveMatch(function(err, savedMatch){
+              if (err){
+                res.status(404);
+                res.json({
+                  "message": err.message
+                });
+              } else {
+                //notify people of new offers (include matchId!)
+                Socket.sendNewOffers(myId, otherUser, targetMatch._id, newOffers);
+                res.status(200);
+                res.json({
+                  "message": "success",
+                  "matchId": savedMatch._id
+                });
+              }
+            });
+          });
+        } 
+
+        else if (isNew) {
+          targetMatch.saveMatch(function(err, savedMatch) {
             if (err){
               res.status(404);
               res.json({
                 "message": err.message
               });
             } else {
-              //notify people of new offers (include matchId!)
-              Socket.sendNewOffers(myId, otherUser, targetMatch._id, newOffers);
               res.status(200);
               res.json({
                 "message": "success",
@@ -126,34 +145,16 @@ var MatchController = {
               });
             }
           });
-        });
-      } 
+        }
 
-      else if (isNew) {
-        targetMatch.saveMatch(function(err, savedMatch) {
-          if (err){
-            res.status(404);
-            res.json({
-              "message": err.message
-            });
-          } else {
-            res.status(200);
-            res.json({
-              "message": "success",
-              "matchId": savedMatch._id
-            });
-          }
-        });
-      }
-
-      else {
-        res.status(200);
-        res.json({
-          "message": "success",
-          "matchId": targetMatch._id
-        });
-      }
-
+        else {
+          res.status(200);
+          res.json({
+            "message": "success",
+            "matchId": targetMatch._id
+          });
+        }
+      });
     });
   },
  

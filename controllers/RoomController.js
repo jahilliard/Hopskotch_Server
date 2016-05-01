@@ -313,6 +313,8 @@ var RoomController = {
 
        { "$match": { "within": true } }
     ], function(err, circles) {
+        console.log("WHATTT");
+        console.log(circles);
         if (err) {
           res.status(404);
           res.json({

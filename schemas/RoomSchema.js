@@ -72,15 +72,15 @@ RoomSchema.statics.getByLocationId = function(id, callback){
   });
 }
 
-RoomSchema.statics.checkInSameCircle = function(user1, user2){
+RoomSchema.statics.checkInSameCircle = function(user1, user2, callback){
   User.find({"_id" : { $in : [user1, user2] } }, function (err, results) {
     if (err || results.length < 2) {
-      return false;
+      callback(false);
     } else {
       if (results[0].currentCircle != results[1].currentCircle) {
-        return false;
+        callback(false);
       } else {
-        return true;
+        callback(true);
       }
     }
   });

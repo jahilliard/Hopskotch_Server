@@ -18,7 +18,7 @@ var RoomSchema = new Schema({
     address: {
       type: String,
       default: ""
-    }
+    },
     radius : {
       type: Number,
     }

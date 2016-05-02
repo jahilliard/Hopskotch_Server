@@ -529,7 +529,7 @@ var RoomController = {
         notifyRoomMemberLeft(roomId, oldMember);
         res.status(200);
         res.json({
-          "message": success
+          "message": "success"
         });
       });
     });

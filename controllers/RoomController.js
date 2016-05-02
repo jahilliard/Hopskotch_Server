@@ -81,7 +81,7 @@ function addMemberToRoom(room, newMemberId, callback) {
                 } 
 
                 filteredMemberIds = _.map(filteredMembers, function(member){return member._id.toString()});
-                ws.notifyUsersNewCircleMember(filteredMemberIds, newMember);
+                ws.notifyUsersNewCircleMember(filteredMemberIds, savedUser);
                 var data = {"circle": room, "members": result};
                 return callback(null, data);
               });

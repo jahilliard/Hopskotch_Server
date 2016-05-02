@@ -15,9 +15,12 @@ var RoomSchema = new Schema({
   properties: {
     name: String,
     mainImg: String,
-    address: String,
+    address: {
+      type: String,
+      default: ""
+    }
     radius : {
-      type: Number
+      type: Number,
     }
   },
 

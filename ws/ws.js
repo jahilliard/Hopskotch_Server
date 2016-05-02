@@ -1,6 +1,7 @@
 var AuthController = require("../controllers/AuthController.js");
 var Chat = require("../models/Chat.js");
 var Message = require("../models/Message.js");
+var UserController = require("../controllers/UserController.js");
 var socketIdToUserId = {};
 var userIdToSocket = {};
 var _ = require('lodash');
@@ -192,7 +193,7 @@ var webSocket = {
       }
 
        //add chatNumber 
-      addedChatResult = _.map(oldUserIds, function(oldMemberId){
+      addedChatandMatchResult = _.map(oldUserIds, function(oldMemberId){
         chat = _.find(chats, function(c) { return (c.user1 == oldMemberId) || (c.user2 == oldMemberId) });
         newMember = newMember.toObject();
         newMember.lastMsgNum = 0;
@@ -204,11 +205,13 @@ var webSocket = {
           }
         }
 
-        if (oldMemberId in userIdToSocket) {
-					userIdToSocket[oldMemberId].emit("newCircleMember", {"newMember": newMember});
-				}
+        UserController.addMatches(oldMemberId, [newMember._id], [newMember], function(err, result){
+        	if (oldMemberId in userIdToSocket) {
+						userIdToSocket[oldMemberId].emit("newCircleMember", {"newMember": result[0]});
+					}
+        });
 
-        return newMember;
+        return result[0];
       });
 		});
 	},

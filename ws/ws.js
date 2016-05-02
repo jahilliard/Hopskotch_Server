@@ -195,18 +195,19 @@ var webSocket = {
        //add chatNumber 
       addedChatandMatchResult = _.map(oldUserIds, function(oldMemberId){
         chat = _.find(chats, function(c) { return (c.user1 == oldMemberId) || (c.user2 == oldMemberId) });
-        newMember = newMember.toObject();
-        newMember.lastMsgNum = 0;
+        var memberObject = newMember.toObject();
+        memberObject.lastMsgNum = 0;
         if (chat) {
           if (chat.user1 == oldMemberId) {
-            newMember.lastMsgNum = chat.user1LastMsgNumber;
+            memberObject.lastMsgNum = chat.user1LastMsgNumber;
           } else {
-            newMember.lastMsgNum = chat.user2LastMsgNumber;
+            memberObject.lastMsgNum = chat.user2LastMsgNumber;
           }
         }
 
-        UserController.addMatches(oldMemberId, [newMember._id], [newMember], function(err, result){
+        UserController.addMatches(oldMemberId, [memberObject._id], [memberObject], function(err, result){
         	if (oldMemberId in userIdToSocket) {
+        		console.log(result[0]);
 						userIdToSocket[oldMemberId].emit("newCircleMember", {"newMember": result[0]});
 					}
         });
